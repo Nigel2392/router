@@ -196,7 +196,6 @@ func (r *Router) SiteMap() []byte {
 	for _, route := range r.routes {
 		WalkRoutes(route, 0, func(route *Route, depth int) {
 			var d = priority(depth)
-			fmt.Println(route.Path, d)
 			if route.HandlerFunc != nil {
 				buffer.WriteString("		<url>\n")
 				buffer.WriteString("			<loc>" + safePath(route.Path) + "</loc>\n")
