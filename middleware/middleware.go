@@ -10,10 +10,21 @@ import (
 
 func Printer(next router.Handler) router.Handler {
 	return router.HandleFuncWrapper{F: func(v router.Vars, w http.ResponseWriter, r *http.Request) {
-		time := time.Now()
+		start := time.Now()
 		method := r.Method
 		path := r.URL.Path
-		fmt.Printf("%s [%s] %s\n", time.Format("2006 Jan 02 15:04:05"), method, path)
+		next.ServeHTTP(v, w, r)
+		fmt.Printf("%s [%s] %s %s\n", start.Format("2006 Jan 02 15:04:05"), method, time.Since(start), path)
+	}}
+}
+
+func Recoverer(next router.Handler) router.Handler {
+	return router.HandleFuncWrapper{F: func(v router.Vars, w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if err := recover(); err != nil {
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			}
+		}()
 		next.ServeHTTP(v, w, r)
 	}}
 }
