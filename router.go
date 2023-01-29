@@ -25,6 +25,7 @@ type Registrar interface {
 	HandleFunc(method, path string, handler HandleFunc) Registrar
 	Handle(method, path string, handler http.Handler) Registrar
 	Use(middlewares ...func(Handler) Handler)
+	Group(path string, middlewares ...func(Handler) Handler) Registrar
 }
 
 type Handler interface {
@@ -91,17 +92,24 @@ func (r *Router) Use(middlewares ...func(Handler) Handler) {
 	r.middleware = append(r.middleware, middlewares...)
 }
 
+func (r *Router) Group(path string, middlewares ...func(Handler) Handler) Registrar {
+	var route = &Route{Path: path}
+	route.middleware = append(r.middleware, middlewares...)
+	r.routes = append(r.routes, route)
+	return route
+}
+
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	for _, route := range r.routes {
-		if ok, vars := route.Match(req.Method, req.URL.Path); ok {
+		if ok, newRoute, vars := route.Match(req.Method, req.URL.Path); ok {
 
-			var handler Handler = HandleFuncWrapper{route.HandlerFunc}
+			var handler Handler = HandleFuncWrapper{newRoute.HandlerFunc}
 
 			for _, middleware := range r.middleware {
 				handler = middleware(handler)
 			}
 
-			for _, middleware := range route.middleware {
+			for _, middleware := range newRoute.middleware {
 				handler = middleware(handler)
 			}
 

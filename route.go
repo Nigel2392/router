@@ -58,20 +58,27 @@ func (r *Route) Head(path string, handler HandleFunc) Registrar {
 	return r.HandleFunc("HEAD", path, handler)
 }
 
-func (r *Route) Match(method, path string) (bool, Vars) {
-	if r.Method != method {
-		return false, nil
+func (r *Route) Group(path string, middlewares ...func(Handler) Handler) Registrar {
+	var route = &Route{Path: path}
+	route.middleware = append(r.middleware, middlewares...)
+	r.children = append(r.children, route)
+	return route
+}
+
+func (r *Route) Match(method, path string) (bool, *Route, Vars) {
+	if r.Method != method && r.HandlerFunc != nil {
+		return false, nil, nil
 	}
 	var ok, vars = routevars.Match(r.Path, path)
 	if ok {
-		return true, vars
+		return true, r, vars
 	}
 	for _, child := range r.children {
-		if ok, vars = child.Match(method, path); ok {
-			return ok, vars
+		if ok, route, vars := child.Match(method, path); ok {
+			return ok, route, vars
 		}
 	}
-	return false, nil
+	return false, nil, nil
 }
 
 func (r *Route) Use(middlewares ...func(Handler) Handler) {
