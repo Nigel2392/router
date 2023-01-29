@@ -1,7 +1,11 @@
 package router
 
 import (
+	"bytes"
+	"fmt"
 	"net/http"
+	"strconv"
+	"strings"
 )
 
 // HTTP Methods
@@ -169,4 +173,93 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 	http.NotFound(w, req)
+}
+
+// SiteMap returns a ready to use XML sitemap
+func (r *Router) SiteMap() []byte {
+	var maxDepth int
+	for _, route := range r.routes {
+		WalkRoutes(route, 1, func(route *Route, depth int) {
+			if depth > maxDepth {
+				maxDepth = depth
+			}
+		})
+	}
+
+	var priority = func(depth int) float64 {
+		return 1.0 - (float64(depth) / float64(maxDepth))
+	}
+
+	var buffer bytes.Buffer
+	buffer.WriteString("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
+	buffer.WriteString("	<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n")
+	for _, route := range r.routes {
+		WalkRoutes(route, 0, func(route *Route, depth int) {
+			var d = priority(depth)
+			fmt.Println(route.Path, d)
+			if route.HandlerFunc != nil {
+				buffer.WriteString("		<url>\n")
+				buffer.WriteString("			<loc>" + safePath(route.Path) + "</loc>\n")
+				buffer.WriteString("			<priority>" + fmt.Sprintf("%.2f", d) + "</priority>\n")
+				buffer.WriteString("		</url>\n")
+			}
+		})
+	}
+	buffer.WriteString(`	</urlset>`)
+
+	return buffer.Bytes()
+}
+
+// Recurse over a routes children, keeping track of depth
+func WalkRoutes(route *Route, depth int, f func(*Route, int)) {
+	f(route, depth)
+	for _, child := range route.children {
+		WalkRoutes(child, depth+1, f)
+	}
+}
+
+var replacer = strings.NewReplacer("&", "&amp;", "<", "&lt;", ">", "&gt;", "\"", "&quot;", "'", "&apos;")
+
+// SafePath escapes the path for XML
+func safePath(path string) string {
+	return replacer.Replace(path)
+}
+
+type RobotListing struct {
+	Allow      []string
+	Disallow   []string
+	UserAgent  string
+	CrawlDelay int
+}
+
+type RobotsOptions struct {
+	Rules   []*RobotListing
+	SiteMap string
+}
+
+// Robots returns a ready to use robots.txt
+func (r *Router) Robots(options *RobotsOptions) []byte {
+	var buffer bytes.Buffer
+	for i, listing := range options.Rules {
+		if listing.UserAgent == "" {
+			listing.UserAgent = "*"
+		}
+		buffer.WriteString("User-agent: " + listing.UserAgent + "\n")
+		for _, allow := range listing.Allow {
+			buffer.WriteString("Allow: " + allow + "\n")
+		}
+		for _, disallow := range listing.Disallow {
+			buffer.WriteString("Disallow: " + disallow + "\n")
+		}
+		if listing.CrawlDelay > 0 {
+			buffer.WriteString("Crawl-delay: " + strconv.Itoa(listing.CrawlDelay) + "\n")
+		}
+		if i < len(options.Rules)-1 {
+			buffer.WriteString("\n")
+		}
+	}
+	if options.SiteMap != "" {
+		buffer.WriteString("\nSitemap: " + options.SiteMap + "\n")
+	}
+	return buffer.Bytes()
 }
