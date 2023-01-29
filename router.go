@@ -44,10 +44,12 @@ type Router struct {
 	routes     []*Route
 	middleware []func(Handler) Handler
 	http.Handler
+	skipTrailingSlash bool
 }
 
-func NewRouter() *Router {
-	return &Router{routes: make([]*Route, 0)}
+func NewRouter(SkipTrailingSlash bool) *Router {
+	var r = &Router{routes: make([]*Route, 0), middleware: make([]func(Handler) Handler, 0), skipTrailingSlash: SkipTrailingSlash}
+	return r
 }
 
 func (r *Router) HandleFunc(method, path string, handler HandleFunc) Registrar {
@@ -100,6 +102,11 @@ func (r *Router) Group(path string, middlewares ...func(Handler) Handler) Regist
 }
 
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+
+	if r.skipTrailingSlash && len(req.URL.Path) > 1 && req.URL.Path[len(req.URL.Path)-1] == '/' {
+		req.URL.Path = req.URL.Path[:len(req.URL.Path)-1]
+	}
+
 	for _, route := range r.routes {
 		if ok, newRoute, vars := route.Match(req.Method, req.URL.Path); ok && newRoute.HandlerFunc != nil {
 
