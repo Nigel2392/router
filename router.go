@@ -160,12 +160,12 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 			var handler Handler = HandleFuncWrapper{newRoute.HandlerFunc}
 
-			for _, middleware := range r.middleware {
-				handler = middleware(handler)
+			for i := len(r.middleware) - 1; i >= 0; i-- {
+				handler = r.middleware[i](handler)
 			}
 
-			for _, middleware := range newRoute.middleware {
-				handler = middleware(handler)
+			for i := len(newRoute.middleware) - 1; i >= 0; i-- {
+				handler = newRoute.middleware[i](handler)
 			}
 
 			handler.ServeHTTP(vars, w, req)
