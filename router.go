@@ -101,7 +101,7 @@ func (r *Router) Group(path string, middlewares ...func(Handler) Handler) Regist
 
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	for _, route := range r.routes {
-		if ok, newRoute, vars := route.Match(req.Method, req.URL.Path); ok {
+		if ok, newRoute, vars := route.Match(req.Method, req.URL.Path); ok && newRoute.HandlerFunc != nil {
 
 			var handler Handler = HandleFuncWrapper{newRoute.HandlerFunc}
 
