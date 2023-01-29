@@ -58,6 +58,10 @@ func (r *Route) Head(path string, handler HandleFunc) Registrar {
 	return r.HandleFunc("HEAD", path, handler)
 }
 
+func (r *Route) Any(path string, handler HandleFunc) Registrar {
+	return r.HandleFunc(ALL, path, handler)
+}
+
 func (r *Route) Group(path string, middlewares ...func(Handler) Handler) Registrar {
 	var route = &Route{Path: path}
 	route.middleware = append(r.middleware, middlewares...)
