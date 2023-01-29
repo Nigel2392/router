@@ -66,8 +66,10 @@ func (r *Route) Group(path string, middlewares ...func(Handler) Handler) Registr
 }
 
 func (r *Route) Match(method, path string) (bool, *Route, Vars) {
-	if r.Method != method && r.HandlerFunc != nil {
-		return false, nil, nil
+	if r.Method != ALL {
+		if r.Method != method && r.HandlerFunc != nil {
+			return false, nil, nil
+		}
 	}
 	var ok, vars = routevars.Match(r.Path, path)
 	if ok {

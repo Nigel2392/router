@@ -4,6 +4,17 @@ import (
 	"net/http"
 )
 
+const (
+	GET     = "GET"
+	POST    = "POST"
+	PUT     = "PUT"
+	DELETE  = "DELETE"
+	PATCH   = "PATCH"
+	OPTIONS = "OPTIONS"
+	HEAD    = "HEAD"
+	ALL     = "ALL"
+)
+
 type HandleFunc func(Vars, http.ResponseWriter, *http.Request)
 
 type HandleFuncWrapper struct {
