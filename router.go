@@ -70,9 +70,8 @@ func HTTPWrapper(handler func(http.ResponseWriter, *http.Request)) HandleFunc {
 // Router is the main router struct
 // It takes care of dispatching requests to the correct route
 type Router struct {
-	routes     []*Route
-	middleware []func(Handler) Handler
-	http.Handler
+	routes            []*Route
+	middleware        []func(Handler) Handler
 	skipTrailingSlash bool
 }
 
