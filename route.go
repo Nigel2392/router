@@ -80,7 +80,7 @@ func (r *Route) Group(path string, middlewares ...func(Handler) Handler) Registr
 		middleware: make([]func(Handler) Handler, 0),
 	}
 	route.middleware = append(route.middleware, r.middleware...)
-	r.children = append(r.children, route)
+	r.children = append([]*Route{route}, r.children...)
 	return route
 }
 
@@ -92,7 +92,10 @@ func (r *Route) AddGroup(group Registrar) {
 	}
 	g.middleware = append(g.middleware, r.middleware...)
 	g.Path = r.Path + g.Path
-	r.children = append(r.children, g)
+	for _, child := range g.children {
+		child.Path = r.Path + child.Path
+	}
+	r.children = append([]*Route{g}, r.children...)
 }
 
 // Match checks if the given path matches the route
