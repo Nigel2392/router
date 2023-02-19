@@ -1,7 +1,6 @@
 package router
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/Nigel2392/routevars"
@@ -103,12 +102,13 @@ func (r *Route) Match(method, path string) (bool, *Route, Vars) {
 			return false, nil, nil
 		}
 	}
-	var ok, vars = routevars.Match(r.Path, path)
-	if ok {
-		return true, r, vars
+	if r.HandlerFunc != nil {
+		var ok, vars = routevars.Match(r.Path, path)
+		if ok {
+			return true, r, vars
+		}
 	}
 	for _, child := range r.children {
-		fmt.Println(path, child.Path)
 		if ok, route, vars := child.Match(method, path); ok {
 			return ok, route, vars
 		}
