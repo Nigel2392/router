@@ -88,6 +88,7 @@ func (r *Route) AddGroup(group Registrar) {
 		g.middleware = make([]func(Handler) Handler, 0)
 	}
 	g.middleware = append(g.middleware, r.middleware...)
+	g.Path = r.Path + g.Path
 	r.children = append(r.children, g)
 }
 
