@@ -160,8 +160,8 @@ func Group(path string) Registrar {
 }
 
 // Addgroup adds a group of routes to the router
-func (r *Router) AddGroup(group *Route) {
-	r.routes = append(r.routes, group)
+func (r *Router) AddGroup(group Registrar) {
+	r.routes = append(r.routes, group.(*Route))
 }
 
 // ServeHTTP dispatches the request to the handler whose
