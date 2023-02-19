@@ -81,6 +81,16 @@ func (r *Route) Group(path string, middlewares ...func(Handler) Handler) Registr
 	return route
 }
 
+// Add a group to the route
+func (r *Route) AddGroup(group Registrar) {
+	var g = group.(*Route)
+	if g.middleware == nil {
+		g.middleware = make([]func(Handler) Handler, 0)
+	}
+	g.middleware = append(g.middleware, r.middleware...)
+	r.children = append(r.children, g)
+}
+
 // Match checks if the given path matches the route
 func (r *Route) Match(method, path string) (bool, *Route, Vars) {
 	if r.Method != ALL {

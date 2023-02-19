@@ -67,6 +67,13 @@ func HTTPWrapper(handler func(http.ResponseWriter, *http.Request)) HandleFunc {
 	}
 }
 
+// Wrapper function for router.Handler to make it compatible with http.handler
+func HandlerWrapper(handler Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		handler.ServeHTTP(nil, w, req)
+	})
+}
+
 // Router is the main router struct
 // It takes care of dispatching requests to the correct route
 type Router struct {
@@ -138,12 +145,23 @@ func (r *Router) Use(middlewares ...func(Handler) Handler) {
 	r.middleware = append(r.middleware, middlewares...)
 }
 
-// Group creates new children to a route.
+// Group creates a new router URL group
 func (r *Router) Group(path string, middlewares ...func(Handler) Handler) Registrar {
 	var route = &Route{Path: path}
-	route.middleware = append(r.middleware, middlewares...)
 	r.routes = append(r.routes, route)
+	route.middleware = append(r.middleware, middlewares...)
 	return route
+}
+
+// Group creates a new router URL group
+func Group(path string) Registrar {
+	var route = &Route{Path: path}
+	return route
+}
+
+// Addgroup adds a group of routes to the router
+func (r *Router) AddGroup(group *Route) {
+	r.routes = append(r.routes, group)
 }
 
 // ServeHTTP dispatches the request to the handler whose
