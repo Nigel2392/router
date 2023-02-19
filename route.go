@@ -1,6 +1,7 @@
 package router
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/Nigel2392/routevars"
@@ -75,8 +76,11 @@ func (r *Route) Any(path string, handler HandleFunc) Registrar {
 
 // Group creates a new group of routes
 func (r *Route) Group(path string, middlewares ...func(Handler) Handler) Registrar {
-	var route = &Route{Path: path}
-	route.middleware = append(r.middleware, middlewares...)
+	var route = &Route{
+		Path:       r.Path + path,
+		middleware: make([]func(Handler) Handler, 0),
+	}
+	route.middleware = append(route.middleware, r.middleware...)
 	r.children = append(r.children, route)
 	return route
 }
@@ -104,6 +108,7 @@ func (r *Route) Match(method, path string) (bool, *Route, Vars) {
 		return true, r, vars
 	}
 	for _, child := range r.children {
+		fmt.Println(path, child.Path)
 		if ok, route, vars := child.Match(method, path); ok {
 			return ok, route, vars
 		}
