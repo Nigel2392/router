@@ -50,6 +50,7 @@ type Registrar interface {
 	Any(path string, handler HandleFunc) Registrar
 	Use(middlewares ...func(Handler) Handler)
 	Group(path string, middlewares ...func(Handler) Handler) Registrar
+	AddGroup(group Registrar)
 }
 
 // Handler is the interface that wraps the ServeHTTP method.
