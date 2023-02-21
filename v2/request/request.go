@@ -69,6 +69,16 @@ func NewRequest(writer http.ResponseWriter, request *http.Request, params URLPar
 	return r
 }
 
+// Write to the response.
+func (r *Request) Write(b []byte) (int, error) {
+	return r.Response.Write(b)
+}
+
+// Write a string to the response.
+func (r *Request) WriteString(s string) (int, error) {
+	return r.Response.Write([]byte(s))
+}
+
 // Raise an error.
 func (r *Request) Error(code int, err string) {
 	http.Error(r.Response, err, code)
