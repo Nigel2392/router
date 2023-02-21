@@ -27,7 +27,7 @@ func (r *Route) HandleFunc(method, path string, handler HandleFunc) Registrar {
 		Path:              path,
 		HandlerFunc:       handler,
 		middleware:        make([]Middleware, 0),
-		middlewareEnabled: true,
+		middlewareEnabled: r.middlewareEnabled,
 	}
 	r.children = append(r.children, child)
 	return child
@@ -90,8 +90,9 @@ func (r *Route) Any(path string, handler HandleFunc) Registrar {
 // Group creates a new group of routes
 func (r *Route) Group(path string, middlewares ...Middleware) Registrar {
 	var route = &Route{
-		Path:       r.Path + path,
-		middleware: middlewares,
+		Path:              r.Path + path,
+		middleware:        middlewares,
+		middlewareEnabled: r.middlewareEnabled,
 	}
 	r.children = append([]*Route{route}, r.children...)
 	return route

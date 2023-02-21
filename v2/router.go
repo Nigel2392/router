@@ -99,7 +99,7 @@ func NewRouter(SkipTrailingSlash bool) *Router {
 
 // HandleFunc registers a new route with the given path and method.
 func (r *Router) HandleFunc(method, path string, handler HandleFunc) Registrar {
-	var route = &Route{Method: method, Path: path, HandlerFunc: handler}
+	var route = &Route{Method: method, Path: path, HandlerFunc: handler, middlewareEnabled: true, middleware: r.middleware}
 	r.routes = append(r.routes, route)
 	return route
 }
@@ -156,7 +156,7 @@ func (r *Router) Use(middlewares ...Middleware) {
 
 // Group creates a new router URL group
 func (r *Router) Group(path string, middlewares ...Middleware) Registrar {
-	var route = &Route{Path: path}
+	var route = &Route{Path: path, middlewareEnabled: true}
 	r.routes = append(r.routes, route)
 	route.middleware = append(r.middleware, middlewares...)
 	return route
