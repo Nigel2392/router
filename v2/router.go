@@ -190,7 +190,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 			// Only run the global middleware if the
 			// route has middleware enabled
-			if newRoute.middlewareEnabled {
+			if newRoute.middlewareEnabled && len(r.middleware) > 0 {
 				for i := len(r.middleware) - 1; i >= 0; i-- {
 					handler = r.middleware[i](handler)
 				}

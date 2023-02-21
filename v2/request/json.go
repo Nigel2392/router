@@ -13,6 +13,7 @@ const (
 	ResponseStatusRedirect ResponseStatus = "redirect"
 )
 
+// Default json response which gets returned when using (j).Encode().
 type JSONResponse struct {
 	Status ResponseStatus `json:"status"`
 	Data   interface{}    `json:"data"`

@@ -91,9 +91,8 @@ func (r *Route) Any(path string, handler HandleFunc) Registrar {
 func (r *Route) Group(path string, middlewares ...func(Handler) Handler) Registrar {
 	var route = &Route{
 		Path:       r.Path + path,
-		middleware: make([]func(Handler) Handler, 0),
+		middleware: middlewares,
 	}
-	route.middleware = append(route.middleware, r.middleware...)
 	r.children = append([]*Route{route}, r.children...)
 	return route
 }
@@ -136,6 +135,9 @@ func (r *Route) Match(method, path string) (bool, *Route, request.URLParams) {
 // Use adds middleware to the route
 func (r *Route) Use(middlewares ...func(Handler) Handler) {
 	r.middleware = append(r.middleware, middlewares...)
+	for _, child := range r.children {
+		child.Use(middlewares...)
+	}
 }
 
 // Format the url based on the arguments given.

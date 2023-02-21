@@ -12,6 +12,19 @@ func ToHandler(f func(*request.Request)) Handler {
 	return handleFuncWrapper{F: f}
 }
 
+// Make a new handler from a http.Handler
+func ToHTTPHandler(h http.Handler) Handler {
+	return httpHandlerWrapper{H: h}
+}
+
+type httpHandlerWrapper struct {
+	H http.Handler
+}
+
+func (h httpHandlerWrapper) ServeHTTP(r *request.Request) {
+	h.H.ServeHTTP(r.Response, r.Request)
+}
+
 // Group creates a new router URL group
 func Group(path string) Registrar {
 	var route = &Route{Path: path}
