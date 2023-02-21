@@ -178,16 +178,23 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	for _, route := range r.routes {
 		if ok, newRoute, vars := route.Match(req.Method, req.URL.Path); ok && newRoute.HandlerFunc != nil {
 
+			// Create a new handler
 			var handler Handler = HandleFuncWrapper{newRoute.HandlerFunc}
 
-			for i := len(r.middleware) - 1; i >= 0; i-- {
-				handler = r.middleware[i](handler)
+			// Only run the global middleware if the
+			// route has middleware enabled
+			if newRoute.middlewareEnabled {
+				for i := len(r.middleware) - 1; i >= 0; i-- {
+					handler = r.middleware[i](handler)
+				}
 			}
 
+			// Run the route middleware
 			for i := len(newRoute.middleware) - 1; i >= 0; i-- {
 				handler = newRoute.middleware[i](handler)
 			}
 
+			// Serve the request
 			handler.ServeHTTP(request.NewRequest(w, req, vars))
 			return
 		}

@@ -9,24 +9,35 @@ import (
 
 // Route is a single route in the router
 type Route struct {
-	Method      string
-	Path        string
-	HandlerFunc HandleFunc
-	middleware  []func(Handler) Handler
-	children    []*Route
+	Method            string
+	Path              string
+	HandlerFunc       HandleFunc
+	middleware        []func(Handler) Handler
+	children          []*Route
+	middlewareEnabled bool
 }
 
 // HandleFunc registers a new route with the given path and method.
 func (r *Route) HandleFunc(method, path string, handler HandleFunc) Registrar {
 	path = r.Path + path
 	var child = &Route{
-		Method:      method,
-		Path:        path,
-		HandlerFunc: handler,
-		middleware:  make([]func(Handler) Handler, 0),
+		Method:            method,
+		Path:              path,
+		HandlerFunc:       handler,
+		middleware:        make([]func(Handler) Handler, 0),
+		middlewareEnabled: true,
 	}
 	r.children = append(r.children, child)
 	return child
+}
+
+// Disable the router's middlewares for this route, and all its children
+// It will however still run the route's own middlewares.
+func (r *Route) DisableMiddleware() {
+	r.middlewareEnabled = false
+	for _, child := range r.children {
+		child.DisableMiddleware()
+	}
 }
 
 // Handle is a convenience method that wraps the http.Handler in a HandleFunc

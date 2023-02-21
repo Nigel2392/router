@@ -46,6 +46,7 @@ func (j *_json) Encode(status ResponseStatus, data interface{}) error {
 	return nil
 }
 
+// Decoode json from a request, into any.
 func (j *_json) Decode(data interface{}) error {
 	// Check header
 	var r = (*j.r).Request
@@ -53,13 +54,5 @@ func (j *_json) Decode(data interface{}) error {
 		return errors.New("Content-Type is not application/json")
 	}
 	var err = json.NewDecoder((*j.r).Request.Body).Decode(data)
-	return err
-}
-
-func (j *_json) DecodeDefault(data interface{}) error {
-	var d = JSONResponse{
-		Data: data,
-	}
-	var err = json.NewDecoder((*j.r).Request.Body).Decode(&d)
 	return err
 }

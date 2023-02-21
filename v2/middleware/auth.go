@@ -1,0 +1,57 @@
+package middleware
+
+import (
+	"net/http"
+	"net/url"
+
+	"github.com/Nigel2392/router/v2"
+	"github.com/Nigel2392/router/v2/request"
+)
+
+// Middleware that only allows users who are authenticated to continue.
+// By default, will always redirect.
+// Set the following function to change the default behavior:
+//
+//	request.GetRequestUserFunc = func(r *request.Request) request.User {
+//		user = ...
+//		return user
+//	}
+func LoginRequiredMiddleware(login_url string) func(next router.Handler) router.Handler {
+	return func(next router.Handler) router.Handler {
+		return router.HandleFuncWrapper{F: func(r *request.Request) {
+			if r.User == nil || !r.User.IsAuthenticated() {
+				var u = r.Request.URL.String()
+				var new_login_url, err = url.Parse(login_url)
+				if err != nil {
+					panic(err)
+				}
+				var query = new_login_url.Query()
+				query.Set("next", u)
+				new_login_url.RawQuery = query.Encode()
+				http.Redirect(r.Writer, r.Request, new_login_url.String(), http.StatusFound)
+			} else {
+				next.ServeHTTP(r)
+			}
+		}}
+	}
+}
+
+// Middleware that only allows users who are not authenticated to continue
+// By default, will never redirect.
+// Set the following function to change the default behavior:
+//
+//	request.GetRequestUserFunc = func(r *request.Request) request.User {
+//		user = ...
+//		return user
+//	}
+func LogoutRequiredMiddleware(nextURL string) func(next router.Handler) router.Handler {
+	return func(next router.Handler) router.Handler {
+		return router.HandleFuncWrapper{F: func(r *request.Request) {
+			if r.User != nil && r.User.IsAuthenticated() {
+				http.Redirect(r.Writer, r.Request, nextURL, http.StatusFound)
+			} else {
+				next.ServeHTTP(r)
+			}
+		}}
+	}
+}
