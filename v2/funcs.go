@@ -7,31 +7,6 @@ import (
 	"github.com/Nigel2392/router/v2/request"
 )
 
-// Make a new Handler
-func ToHandler(f func(*request.Request)) Handler {
-	return handleFuncWrapper{F: f}
-}
-
-// Make a new handler from a http.Handler
-func FromHTTPHandler(h http.Handler) Handler {
-	return httpHandlerWrapper{H: h}
-}
-
-// Make a new middleware function from a http.Handler
-func FromHTTPMiddleware(h http.Handler) Middleware {
-	return func(next Handler) Handler {
-		return httpHandlerWrapper{H: h}
-	}
-}
-
-type httpHandlerWrapper struct {
-	H http.Handler
-}
-
-func (h httpHandlerWrapper) ServeHTTP(r *request.Request) {
-	h.H.ServeHTTP(r.Response, r.Request)
-}
-
 // Group creates a new router URL group
 func Group(path string) Registrar {
 	var route = &Route{Path: path}

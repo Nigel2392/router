@@ -56,10 +56,10 @@ type Registrar interface {
 	Handle(method, path string, handler http.Handler) Registrar
 
 	// Use adds middleware to the router.
-	Use(middlewares ...func(Handler) Handler)
+	Use(middlewares ...Middleware)
 
 	// Group creates a new router URL group
-	Group(path string, middlewares ...func(Handler) Handler) Registrar
+	Group(path string, middlewares ...Middleware) Registrar
 
 	// Addgroup adds a group of routes to the router
 	AddGroup(group Registrar)
@@ -80,16 +80,6 @@ type Handler interface {
 // HandleFunc is the function that is called when a route is matched
 type HandleFunc func(*request.Request)
 
-// Wrapper function for HandleFunc to make it compatible with http.Handler
-type handleFuncWrapper struct {
-	F func(*request.Request)
-}
-
-// ServeHTTP implements the Handler interface
-func (h handleFuncWrapper) ServeHTTP(r *request.Request) {
-	h.F(r)
-}
-
 // Variable map passed to the route.
 type Vars map[string]string
 
@@ -97,13 +87,13 @@ type Vars map[string]string
 // It takes care of dispatching requests to the correct route
 type Router struct {
 	routes            []*Route
-	middleware        []func(Handler) Handler
+	middleware        []Middleware
 	skipTrailingSlash bool
 }
 
 // NewRouter creates a new router
 func NewRouter(SkipTrailingSlash bool) *Router {
-	var r = &Router{routes: make([]*Route, 0), middleware: make([]func(Handler) Handler, 0), skipTrailingSlash: SkipTrailingSlash}
+	var r = &Router{routes: make([]*Route, 0), middleware: make([]Middleware, 0), skipTrailingSlash: SkipTrailingSlash}
 	return r
 }
 
@@ -160,12 +150,12 @@ func (r *Router) Any(path string, handler HandleFunc) Registrar {
 }
 
 // Use adds middleware to the router.
-func (r *Router) Use(middlewares ...func(Handler) Handler) {
+func (r *Router) Use(middlewares ...Middleware) {
 	r.middleware = append(r.middleware, middlewares...)
 }
 
 // Group creates a new router URL group
-func (r *Router) Group(path string, middlewares ...func(Handler) Handler) Registrar {
+func (r *Router) Group(path string, middlewares ...Middleware) Registrar {
 	var route = &Route{Path: path}
 	r.routes = append(r.routes, route)
 	route.middleware = append(r.middleware, middlewares...)

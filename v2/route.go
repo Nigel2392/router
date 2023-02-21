@@ -14,7 +14,7 @@ type Route struct {
 	Method            string
 	Path              string
 	HandlerFunc       HandleFunc
-	middleware        []func(Handler) Handler
+	middleware        []Middleware
 	children          []*Route
 	middlewareEnabled bool
 }
@@ -26,7 +26,7 @@ func (r *Route) HandleFunc(method, path string, handler HandleFunc) Registrar {
 		Method:            method,
 		Path:              path,
 		HandlerFunc:       handler,
-		middleware:        make([]func(Handler) Handler, 0),
+		middleware:        make([]Middleware, 0),
 		middlewareEnabled: true,
 	}
 	r.children = append(r.children, child)
@@ -88,7 +88,7 @@ func (r *Route) Any(path string, handler HandleFunc) Registrar {
 }
 
 // Group creates a new group of routes
-func (r *Route) Group(path string, middlewares ...func(Handler) Handler) Registrar {
+func (r *Route) Group(path string, middlewares ...Middleware) Registrar {
 	var route = &Route{
 		Path:       r.Path + path,
 		middleware: middlewares,
@@ -101,7 +101,7 @@ func (r *Route) Group(path string, middlewares ...func(Handler) Handler) Registr
 func (r *Route) AddGroup(group Registrar) {
 	var g = group.(*Route)
 	if g.middleware == nil {
-		g.middleware = make([]func(Handler) Handler, 0)
+		g.middleware = make([]Middleware, 0)
 	}
 	g.middleware = append(g.middleware, r.middleware...)
 	g.Path = r.Path + g.Path
@@ -133,7 +133,7 @@ func (r *Route) Match(method, path string) (bool, *Route, request.URLParams) {
 }
 
 // Use adds middleware to the route
-func (r *Route) Use(middlewares ...func(Handler) Handler) {
+func (r *Route) Use(middlewares ...Middleware) {
 	r.middleware = append(r.middleware, middlewares...)
 	for _, child := range r.children {
 		child.Use(middlewares...)
