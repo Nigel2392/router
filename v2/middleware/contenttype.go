@@ -34,7 +34,7 @@ func AllowContentType(contentTypes ...string) func(next router.Handler) router.H
 				return
 			}
 
-			http.Error(r.Writer, http.StatusText(http.StatusUnsupportedMediaType), http.StatusUnsupportedMediaType)
+			http.Error(r.Response, http.StatusText(http.StatusUnsupportedMediaType), http.StatusUnsupportedMediaType)
 		})
 	}
 }

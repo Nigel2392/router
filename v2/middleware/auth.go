@@ -56,7 +56,7 @@ func LogoutRequiredMiddleware(nextURL string) func(next router.Handler) router.H
 	return func(next router.Handler) router.Handler {
 		return router.ToHandler(func(r *request.Request) {
 			if r.User != nil && r.User.IsAuthenticated() {
-				http.Redirect(r.Writer, r.Request, nextURL, http.StatusFound)
+				http.Redirect(r.Response, r.Request, nextURL, http.StatusFound)
 			} else {
 				next.ServeHTTP(r)
 			}

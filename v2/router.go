@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/Nigel2392/router/v2/request"
@@ -25,21 +24,49 @@ const (
 )
 
 // Registrar is the main interface for registering routes
-// Both the router and the route struct implement this interface
 type Registrar interface {
+	// Put registers a new route with the given path and method.
 	Put(path string, handler HandleFunc) Registrar
+
+	// Post registers a new route with the given path and method.
 	Post(path string, handler HandleFunc) Registrar
+
+	// Get registers a new route with the given path and method.
 	Get(path string, handler HandleFunc) Registrar
+
+	// Delete registers a new route with the given path and method.
 	Delete(path string, handler HandleFunc) Registrar
+
+	// Patch registers a new route with the given path and method.
 	Patch(path string, handler HandleFunc) Registrar
+
+	// Options registers a new route with the given path and method.
 	Options(path string, handler HandleFunc) Registrar
+
+	// Head registers a new route with the given path and method.
 	Head(path string, handler HandleFunc) Registrar
-	HandleFunc(method, path string, handler HandleFunc) Registrar
-	Handle(method, path string, handler http.Handler) Registrar
+
+	// Register a route for all methods
 	Any(path string, handler HandleFunc) Registrar
+
+	// HandleFunc registers a new route with the given path and method.
+	HandleFunc(method, path string, handler HandleFunc) Registrar
+
+	// Handle is a convenience method that wraps the http.Handler in a HandleFunc
+	Handle(method, path string, handler http.Handler) Registrar
+
+	// Use adds middleware to the router.
 	Use(middlewares ...func(Handler) Handler)
+
+	// Group creates a new router URL group
 	Group(path string, middlewares ...func(Handler) Handler) Registrar
+
+	// Addgroup adds a group of routes to the router
 	AddGroup(group Registrar)
+
+	// This is the only function the router does not implement.
+	// Formats the URL for the given route, based on the given arguments.
+	URL(args ...any) string
 }
 
 // Handler is the interface that wraps the ServeHTTP method.
@@ -58,11 +85,6 @@ type handleFuncWrapper struct {
 // ServeHTTP implements the Handler interface
 func (h handleFuncWrapper) ServeHTTP(r *request.Request) {
 	h.F(r)
-}
-
-// Make a new HandleFuncWrapper
-func ToHandler(f func(*request.Request)) Handler {
-	return handleFuncWrapper{F: f}
 }
 
 // Variable map passed to the route.
@@ -187,11 +209,18 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	http.NotFound(w, req)
 }
 
+var replacer = strings.NewReplacer("&", "&amp;", "<", "&lt;", ">", "&gt;", "\"", "&quot;", "'", "&apos;")
+
+// SafePath escapes the path for XML
+func safePath(path string) string {
+	return replacer.Replace(path)
+}
+
 // SiteMap returns a ready to use XML sitemap
 func (r *Router) SiteMap() []byte {
 	var maxDepth int
 	for _, route := range r.routes {
-		WalkRoutes(route, 1, func(route *Route, depth int) {
+		walkRoutes(route, 1, func(route *Route, depth int) {
 			if depth > maxDepth {
 				maxDepth = depth
 			}
@@ -206,7 +235,7 @@ func (r *Router) SiteMap() []byte {
 	buffer.WriteString("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
 	buffer.WriteString("	<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n")
 	for _, route := range r.routes {
-		WalkRoutes(route, 0, func(route *Route, depth int) {
+		WalkRoutes(route, func(route *Route, depth int) {
 			var d = priority(depth)
 			if route.HandlerFunc != nil {
 				buffer.WriteString("		<url>\n")
@@ -218,59 +247,5 @@ func (r *Router) SiteMap() []byte {
 	}
 	buffer.WriteString(`	</urlset>`)
 
-	return buffer.Bytes()
-}
-
-// Recurse over a routes children, keeping track of depth
-func WalkRoutes(route *Route, depth int, f func(*Route, int)) {
-	f(route, depth)
-	for _, child := range route.children {
-		WalkRoutes(child, depth+1, f)
-	}
-}
-
-var replacer = strings.NewReplacer("&", "&amp;", "<", "&lt;", ">", "&gt;", "\"", "&quot;", "'", "&apos;")
-
-// SafePath escapes the path for XML
-func safePath(path string) string {
-	return replacer.Replace(path)
-}
-
-type RobotListing struct {
-	Allow      []string
-	Disallow   []string
-	UserAgent  string
-	CrawlDelay int
-}
-
-type RobotsOptions struct {
-	Rules   []*RobotListing
-	SiteMap string
-}
-
-// Robots returns a ready to use robots.txt
-func (r *Router) Robots(options *RobotsOptions) []byte {
-	var buffer bytes.Buffer
-	for i, listing := range options.Rules {
-		if listing.UserAgent == "" {
-			listing.UserAgent = "*"
-		}
-		buffer.WriteString("User-agent: " + listing.UserAgent + "\n")
-		for _, allow := range listing.Allow {
-			buffer.WriteString("Allow: " + allow + "\n")
-		}
-		for _, disallow := range listing.Disallow {
-			buffer.WriteString("Disallow: " + disallow + "\n")
-		}
-		if listing.CrawlDelay > 0 {
-			buffer.WriteString("Crawl-delay: " + strconv.Itoa(listing.CrawlDelay) + "\n")
-		}
-		if i < len(options.Rules)-1 {
-			buffer.WriteString("\n")
-		}
-	}
-	if options.SiteMap != "" {
-		buffer.WriteString("\nSitemap: " + options.SiteMap + "\n")
-	}
 	return buffer.Bytes()
 }

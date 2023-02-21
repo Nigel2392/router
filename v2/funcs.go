@@ -7,10 +7,28 @@ import (
 	"github.com/Nigel2392/router/v2/request"
 )
 
+// Make a new Handler
+func ToHandler(f func(*request.Request)) Handler {
+	return handleFuncWrapper{F: f}
+}
+
 // Group creates a new router URL group
 func Group(path string) Registrar {
 	var route = &Route{Path: path}
 	return route
+}
+
+// Recurse over a routes children, keeping track of depth
+func WalkRoutes(route *Route, f func(*Route, int)) {
+	walkRoutes(route, 0, f)
+}
+
+// Recurse over a routes children, keeping track of depth
+func walkRoutes(route *Route, depth int, f func(*Route, int)) {
+	f(route, depth)
+	for _, child := range route.children {
+		walkRoutes(child, depth+1, f)
+	}
 }
 
 // Redirect user to a URL, appending the current URL as a "next" query parameter
@@ -23,13 +41,13 @@ func RedirectWithNextURL(r *request.Request, nextURL string) {
 	var query = new_login_url.Query()
 	query.Set("next", u)
 	new_login_url.RawQuery = query.Encode()
-	http.Redirect(r.Writer, r.Request, new_login_url.String(), http.StatusFound)
+	http.Redirect(r.Response, r.Request, new_login_url.String(), http.StatusFound)
 }
 
 // Wrapper function for http.Handler to make it compatible with HandleFunc
 func HTTPWrapper(handler func(http.ResponseWriter, *http.Request)) HandleFunc {
 	return func(r *request.Request) {
-		handler(r.Writer, r.Request)
+		handler(r.Response, r.Request)
 	}
 }
 

@@ -11,7 +11,7 @@ func Recoverer(next router.Handler) router.Handler {
 	return router.ToHandler(func(r *request.Request) {
 		defer func() {
 			if err := recover(); err != nil {
-				http.Error(r.Writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+				http.Error(r.Response, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			}
 		}()
 		next.ServeHTTP(r)

@@ -47,7 +47,7 @@ func GetHost[T RequestConstraint](r T) string {
 
 // Default request to be passed around the router.
 type Request struct {
-	Writer    http.ResponseWriter
+	Response  http.ResponseWriter
 	Request   *http.Request
 	Data      map[string]interface{}
 	URLParams URLParams
@@ -59,19 +59,19 @@ type Request struct {
 // Initialize a new request.
 func NewRequest(writer http.ResponseWriter, request *http.Request, params URLParams) *Request {
 	var r = &Request{
-		Writer:    writer,
+		Response:  writer,
 		Request:   request,
 		URLParams: params,
 		JSON:      &_json{},
 	}
 	r.JSON.r = &r
-	r.User = GetRequestUserFunc(r.Writer, r.Request)
+	r.User = GetRequestUserFunc(r.Response, r.Request)
 	return r
 }
 
 // Raise an error.
 func (r *Request) Error(code int, err string) {
-	http.Error(r.Writer, err, code)
+	http.Error(r.Response, err, code)
 }
 
 // Get the request method.

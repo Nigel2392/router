@@ -35,7 +35,7 @@ func AllowedHosts(allowed_hosts ...string) func(next router.Handler) router.Hand
 				}
 			}
 			if !allowed {
-				http.Error(r.Writer, fmt.Sprintf("Host not allowed: %s", requestHost), http.StatusForbidden)
+				http.Error(r.Response, fmt.Sprintf("Host not allowed: %s", requestHost), http.StatusForbidden)
 				return
 			}
 			next.ServeHTTP(r)

@@ -41,8 +41,8 @@ func (j *_json) Encode(status ResponseStatus, data interface{}) error {
 	if err != nil {
 		return err
 	}
-	(*j.r).Writer.Header().Set("Content-Type", "application/json")
-	(*j.r).Writer.Write(jsonData)
+	(*j.r).Response.Header().Set("Content-Type", "application/json")
+	(*j.r).Response.Write(jsonData)
 	return nil
 }
 
