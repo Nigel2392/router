@@ -33,10 +33,14 @@ type _json struct {
 //			"key": "value"
 //		}
 //	}
-func (j *_json) Encode(status ResponseStatus, data interface{}) error {
+func (j *_json) Encode(data interface{}, status ...ResponseStatus) error {
 	var response = JSONResponse{
-		Status: status,
-		Data:   data,
+		Data: data,
+	}
+	if len(status) > 0 {
+		response.Status = status[0]
+	} else {
+		response.Status = ResponseStatusOK
 	}
 	var jsonData, err = json.Marshal(response)
 	if err != nil {
