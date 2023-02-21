@@ -8,6 +8,7 @@ import (
 	"github.com/Nigel2392/router/v2/request"
 )
 
+// Check if the request.Host is in the allowed hosts list
 func AllowedHosts(allowed_hosts ...string) func(next router.Handler) router.Handler {
 	return func(next router.Handler) router.Handler {
 		return router.HandleFuncWrapper{F: func(r *request.Request) {
