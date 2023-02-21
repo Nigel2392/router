@@ -69,6 +69,9 @@ type Registrar interface {
 	URL(args ...any) string
 }
 
+// Middleware is the function that is called when a route is matched
+type Middleware func(Handler) Handler
+
 // Handler is the interface that wraps the ServeHTTP method.
 type Handler interface {
 	ServeHTTP(*request.Request)

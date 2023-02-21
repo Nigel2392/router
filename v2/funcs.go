@@ -13,8 +13,15 @@ func ToHandler(f func(*request.Request)) Handler {
 }
 
 // Make a new handler from a http.Handler
-func ToHTTPHandler(h http.Handler) Handler {
+func FromHTTPHandler(h http.Handler) Handler {
 	return httpHandlerWrapper{H: h}
+}
+
+// Make a new middleware function from a http.Handler
+func FromHTTPMiddleware(h http.Handler) Middleware {
+	return func(next Handler) Handler {
+		return httpHandlerWrapper{H: h}
+	}
 }
 
 type httpHandlerWrapper struct {
