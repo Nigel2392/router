@@ -11,7 +11,7 @@ import (
 // Check if the request.Host is in the allowed hosts list
 func AllowedHosts(allowed_hosts ...string) func(next router.Handler) router.Handler {
 	return func(next router.Handler) router.Handler {
-		return router.HandleFuncWrapper{F: func(r *request.Request) {
+		return router.ToHandler(func(r *request.Request) {
 			// Check if ALLOWED_HOSTS is set and if the request host is allowed
 			if len(allowed_hosts) > 0 {
 				var allowed = false
@@ -31,6 +31,6 @@ func AllowedHosts(allowed_hosts ...string) func(next router.Handler) router.Hand
 				http.Error(r.Writer, "Allowed Hosts not set.", http.StatusForbidden)
 			}
 			next.ServeHTTP(r)
-		}}
+		})
 	}
 }

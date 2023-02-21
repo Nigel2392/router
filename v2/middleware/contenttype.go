@@ -15,7 +15,7 @@ func AllowContentType(contentTypes ...string) func(next router.Handler) router.H
 			allowedContentTypes[strings.TrimSpace(strings.ToLower(ctype))] = 0
 		}
 
-		return router.HandleFuncWrapper{F: func(r *request.Request) {
+		return router.ToHandler(func(r *request.Request) {
 
 			// Check if the body has content
 			if r.Request.ContentLength == 0 {
@@ -35,6 +35,6 @@ func AllowContentType(contentTypes ...string) func(next router.Handler) router.H
 			}
 
 			http.Error(r.Writer, http.StatusText(http.StatusUnsupportedMediaType), http.StatusUnsupportedMediaType)
-		}}
+		})
 	}
 }

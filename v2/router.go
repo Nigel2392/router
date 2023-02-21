@@ -24,19 +24,6 @@ const (
 	ALL = "ALL"
 )
 
-// HandleFunc is the function that is called when a route is matched
-type HandleFunc func(*request.Request)
-
-// Wrapper function for HandleFunc to make it compatible with http.Handler
-type HandleFuncWrapper struct {
-	F func(*request.Request)
-}
-
-// ServeHTTP implements the Handler interface
-func (h HandleFuncWrapper) ServeHTTP(r *request.Request) {
-	h.F(r)
-}
-
 // Registrar is the main interface for registering routes
 // Both the router and the route struct implement this interface
 type Registrar interface {
@@ -60,22 +47,26 @@ type Handler interface {
 	ServeHTTP(*request.Request)
 }
 
+// HandleFunc is the function that is called when a route is matched
+type HandleFunc func(*request.Request)
+
+// Wrapper function for HandleFunc to make it compatible with http.Handler
+type handleFuncWrapper struct {
+	F func(*request.Request)
+}
+
+// ServeHTTP implements the Handler interface
+func (h handleFuncWrapper) ServeHTTP(r *request.Request) {
+	h.F(r)
+}
+
+// Make a new HandleFuncWrapper
+func ToHandler(f func(*request.Request)) Handler {
+	return handleFuncWrapper{F: f}
+}
+
 // Variable map passed to the route.
 type Vars map[string]string
-
-// Wrapper function for http.Handler to make it compatible with HandleFunc
-func HTTPWrapper(handler func(http.ResponseWriter, *http.Request)) HandleFunc {
-	return func(r *request.Request) {
-		handler(r.Writer, r.Request)
-	}
-}
-
-// Wrapper function for router.Handler to make it compatible with http.handler
-func HandlerWrapper(handler Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		handler.ServeHTTP(request.NewRequest(w, req, nil))
-	})
-}
 
 // Router is the main router struct
 // It takes care of dispatching requests to the correct route
@@ -156,12 +147,6 @@ func (r *Router) Group(path string, middlewares ...func(Handler) Handler) Regist
 	return route
 }
 
-// Group creates a new router URL group
-func Group(path string) Registrar {
-	var route = &Route{Path: path}
-	return route
-}
-
 // Addgroup adds a group of routes to the router
 func (r *Router) AddGroup(group Registrar) {
 	r.routes = append(r.routes, group.(*Route))
@@ -179,7 +164,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		if ok, newRoute, vars := route.Match(req.Method, req.URL.Path); ok && newRoute.HandlerFunc != nil {
 
 			// Create a new handler
-			var handler Handler = HandleFuncWrapper{newRoute.HandlerFunc}
+			var handler Handler = handleFuncWrapper{newRoute.HandlerFunc}
 
 			// Only run the global middleware if the
 			// route has middleware enabled

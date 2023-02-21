@@ -9,13 +9,13 @@ import (
 
 func Cache(maxAge int) func(next router.Handler) router.Handler {
 	return func(next router.Handler) router.Handler {
-		return router.HandleFuncWrapper{F: func(r *request.Request) {
+		return router.ToHandler(func(r *request.Request) {
 			for _, header := range etagHeaders {
 				r.Writer.Header().Del(header)
 			}
 			r.Writer.Header().Set("Cache-Control", "public, max-age="+strconv.Itoa(maxAge))
 			next.ServeHTTP(r)
-		}}
+		})
 	}
 }
 
@@ -29,7 +29,7 @@ var etagHeaders = []string{
 }
 
 func NoCache(next router.Handler) router.Handler {
-	return router.HandleFuncWrapper{F: func(r *request.Request) {
+	return router.ToHandler(func(r *request.Request) {
 		for _, header := range etagHeaders {
 			r.Writer.Header().Del(header)
 		}
@@ -37,5 +37,5 @@ func NoCache(next router.Handler) router.Handler {
 		r.Writer.Header().Set("Pragma", "no-cache")
 		r.Writer.Header().Set("Expires", "0")
 		next.ServeHTTP(r)
-	}}
+	})
 }

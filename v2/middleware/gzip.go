@@ -9,7 +9,7 @@ import (
 )
 
 func GZIP(next router.Handler) router.Handler {
-	return router.HandleFuncWrapper{F: func(r *request.Request) {
+	return router.ToHandler(func(r *request.Request) {
 		r.Writer.Header().Set("Content-Encoding", "gzip")
 		// Compress the response
 		var gz = gzip.NewWriter(r.Writer)
@@ -18,7 +18,7 @@ func GZIP(next router.Handler) router.Handler {
 		var gzw = gzipResponseWriter{ResponseWriter: r.Writer, Writer: gz}
 		r.Writer = gzw
 		next.ServeHTTP(r)
-	}}
+	})
 }
 
 type gzipResponseWriter struct {

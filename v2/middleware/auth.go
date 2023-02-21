@@ -17,7 +17,7 @@ import (
 //	}
 func LoginRequiredMiddleware(notAuth func(r *request.Request)) func(next router.Handler) router.Handler {
 	return func(next router.Handler) router.Handler {
-		return router.HandleFuncWrapper{F: func(r *request.Request) {
+		return router.ToHandler(func(r *request.Request) {
 			if r.User == nil || !r.User.IsAuthenticated() {
 				if notAuth == nil {
 					panic("LoginRequiredMiddleware: notAuth function is nil")
@@ -26,7 +26,7 @@ func LoginRequiredMiddleware(notAuth func(r *request.Request)) func(next router.
 			} else {
 				next.ServeHTTP(r)
 			}
-		}}
+		})
 	}
 }
 
@@ -54,12 +54,12 @@ func LoginRequiredRedirectMiddleware(nextURL string) func(next router.Handler) r
 //	}
 func LogoutRequiredMiddleware(nextURL string) func(next router.Handler) router.Handler {
 	return func(next router.Handler) router.Handler {
-		return router.HandleFuncWrapper{F: func(r *request.Request) {
+		return router.ToHandler(func(r *request.Request) {
 			if r.User != nil && r.User.IsAuthenticated() {
 				http.Redirect(r.Writer, r.Request, nextURL, http.StatusFound)
 			} else {
 				next.ServeHTTP(r)
 			}
-		}}
+		})
 	}
 }
