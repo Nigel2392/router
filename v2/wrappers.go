@@ -16,13 +16,6 @@ func FromHTTPHandler(h http.Handler) Handler {
 	return httpHandlerWrapper{H: h}
 }
 
-// Make a new middleware function from a http.Handler
-func FromHTTPMiddleware(h http.Handler) Middleware {
-	return func(next Handler) Handler {
-		return httpHandlerWrapper{H: h}
-	}
-}
-
 // Wrapper function for http.Handler to make it compatible with Handler
 type httpHandlerWrapper struct {
 	H http.Handler
