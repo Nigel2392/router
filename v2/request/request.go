@@ -16,17 +16,6 @@ type User interface {
 	IsAuthenticated() bool
 }
 
-// You need to override this function to be able to use the `request.User` field.
-// Function which will be called at the initialization of every request.
-// This function should return a user, to set on the request.
-//
-// Beware!
-//
-// - This function is called before any middlewares are called!
-var GetRequestUserFunc = func(w http.ResponseWriter, r *http.Request) User {
-	return nil
-}
-
 type RequestConstraint interface {
 	*Request | *http.Request
 }
@@ -66,7 +55,6 @@ func NewRequest(writer http.ResponseWriter, request *http.Request, params URLPar
 		Data:      NewTemplateData(),
 	}
 	r.JSON.r = &r
-	r.User = GetRequestUserFunc(r.Response, r.Request)
 	return r
 }
 

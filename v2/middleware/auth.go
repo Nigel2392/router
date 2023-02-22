@@ -5,14 +5,18 @@ import (
 	"github.com/Nigel2392/router/v2/request"
 )
 
+func AddUserMiddleware(f func(*request.Request) request.User) router.Middleware {
+	return func(next router.Handler) router.Handler {
+		return router.ToHandler(func(r *request.Request) {
+			r.User = f(r)
+			next.ServeHTTP(r)
+		})
+	}
+}
+
 // Middleware that only allows users who are authenticated to continue.
 // By default, will call the notAuth function.
-// Set the following function to change the default behavior:
-//
-//	request.GetRequestUserFunc = func(r *request.Request) request.User {
-//		user = ...
-//		return user
-//	}
+// Configure the AddUserMiddleware to change the default behavior.
 func LoginRequiredMiddleware(notAuth func(r *request.Request)) func(next router.Handler) router.Handler {
 	if notAuth == nil {
 		panic("LoginRequiredMiddleware: notAuth function is nil")
@@ -31,11 +35,7 @@ func LoginRequiredMiddleware(notAuth func(r *request.Request)) func(next router.
 // Middleware that only allows users who are authenticated to continue.
 // By default, will always redirect.
 // Set the following function to change the default behavior:
-//
-//	request.GetRequestUserFunc = func(r *request.Request) request.User {
-//		user = ...
-//		return user
-//	}
+// Configure the AddUserMiddleware to change the default behavior.
 func LoginRequiredRedirectMiddleware(nextURL string) func(next router.Handler) router.Handler {
 	return LoginRequiredMiddleware(func(r *request.Request) {
 		router.RedirectWithNextURL(r, nextURL)
@@ -45,11 +45,7 @@ func LoginRequiredRedirectMiddleware(nextURL string) func(next router.Handler) r
 // Middleware that only allows users who are not authenticated to continue
 // By default, will never call the isAuth function.
 // Set the following function to change the default behavior:
-//
-//	request.GetRequestUserFunc = func(r *request.Request) request.User {
-//		user = ...
-//		return user
-//	}
+// Configure the AddUserMiddleware to change the default behavior.
 func LogoutRequiredMiddleware(isAuth func(r *request.Request)) func(next router.Handler) router.Handler {
 	if isAuth == nil {
 		panic("LogoutRequiredMiddleware: isAuth function is nil")
@@ -68,11 +64,7 @@ func LogoutRequiredMiddleware(isAuth func(r *request.Request)) func(next router.
 // Middleware that only allows users who are not authenticated to continue
 // By default, will never call the isAuth function.
 // Set the following function to change the default behavior:
-//
-//	request.GetRequestUserFunc = func(r *request.Request) request.User {
-//		user = ...
-//		return user
-//	}
+// Configure the AddUserMiddleware to change the default behavior.
 func LogoutRequiredRedirectMiddleware(nextURL string) func(next router.Handler) router.Handler {
 	return LogoutRequiredMiddleware(func(r *request.Request) {
 		router.RedirectWithNextURL(r, nextURL)

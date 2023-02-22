@@ -16,6 +16,14 @@ func FromHTTPHandler(h http.Handler) Handler {
 	return httpHandlerWrapper{H: h}
 }
 
+// Make a new http.Handler from a Handler
+func ToHTTPHandler(h Handler) http.Handler {
+	var f = func(w http.ResponseWriter, r *http.Request) {
+		h.ServeHTTP(request.NewRequest(w, r, nil))
+	}
+	return http.HandlerFunc(f)
+}
+
 // Wrapper function for http.Handler to make it compatible with Handler
 type httpHandlerWrapper struct {
 	H http.Handler
