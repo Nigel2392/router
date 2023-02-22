@@ -7,6 +7,17 @@ import (
 	"github.com/Nigel2392/router/v2/request"
 )
 
+// format an address for printing
+func niceAddr(addr string) string {
+	if addr == "" {
+		return "localhost"
+	}
+	if addr[0] == ':' {
+		return "localhost" + addr
+	}
+	return addr
+}
+
 // Group creates a new router URL group
 func Group(path string) Registrar {
 	var route = &Route{Path: path}
