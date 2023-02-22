@@ -63,7 +63,7 @@ func NewRequest(writer http.ResponseWriter, request *http.Request, params URLPar
 		Request:   request,
 		URLParams: params,
 		JSON:      &_json{},
-		Data:      &TemplateData{},
+		Data:      NewTemplateData(),
 	}
 	r.JSON.r = &r
 	r.User = GetRequestUserFunc(r.Response, r.Request)

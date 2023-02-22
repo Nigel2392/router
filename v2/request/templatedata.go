@@ -37,21 +37,31 @@ func (td *TemplateData) AddMessage(messageType, message string) {
 }
 
 func (td *TemplateData) Set(key string, value interface{}) {
+	// td.makeMap()
 	td.Data[key] = value
 }
 
 func (td *TemplateData) Get(key string) interface{} {
+	// td.makeMap()
 	return td.Data[key]
 }
 
 func (td *TemplateData) Has(key string) bool {
+	// td.makeMap()
 	_, ok := td.Data[key]
 	return ok
 }
 
 func (td *TemplateData) Delete(key string) {
+	// td.makeMap()
 	delete(td.Data, key)
 }
+
+//	func (td *TemplateData) makeMap() {
+//		if td.Data == nil {
+//			td.Data = make(map[string]any)
+//		}
+//	}
 
 type Message struct {
 	Type string
