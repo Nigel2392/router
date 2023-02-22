@@ -91,7 +91,8 @@ type Config struct {
 	// Wether to skip trailing slashes
 	SkipTrailingSlash bool
 	// The server to use
-	Server *http.Server
+	Server          *http.Server
+	NotFoundHandler Handler
 }
 
 // Router is the main router struct
@@ -251,6 +252,10 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			handler.ServeHTTP(request.NewRequest(w, req, vars))
 			return
 		}
+	}
+	if r.conf.NotFoundHandler != nil {
+		r.conf.NotFoundHandler.ServeHTTP(request.NewRequest(w, req, nil))
+		return
 	}
 	http.NotFound(w, req)
 }

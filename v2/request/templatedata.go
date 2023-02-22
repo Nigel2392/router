@@ -23,7 +23,7 @@ func (ct *CSRFToken) Input() template.HTML {
 type TemplateData struct {
 	Data      map[string]any
 	Messages  []Message
-	CSRFToken CSRFToken
+	CSRFToken *CSRFToken
 	User      interface{}
 	Next      string
 }
