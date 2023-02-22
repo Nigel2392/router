@@ -49,7 +49,7 @@ func GetHost[T RequestConstraint](r T) string {
 type Request struct {
 	Response  http.ResponseWriter
 	Request   *http.Request
-	Data      map[string]interface{}
+	Data      *TemplateData
 	URLParams URLParams
 	form      url.Values
 	User      User
@@ -63,6 +63,7 @@ func NewRequest(writer http.ResponseWriter, request *http.Request, params URLPar
 		Request:   request,
 		URLParams: params,
 		JSON:      &_json{},
+		Data:      &TemplateData{},
 	}
 	r.JSON.r = &r
 	r.User = GetRequestUserFunc(r.Response, r.Request)
@@ -121,16 +122,10 @@ func (r *Request) FormFileBuffer(name string) (*bytes.Buffer, error) {
 
 // Set a data value.
 func (r *Request) SetData(key string, value interface{}) {
-	if r.Data == nil {
-		r.Data = make(map[string]interface{})
-	}
-	r.Data[key] = value
+	r.Data.Set(key, value)
 }
 
 // Get a data value.
 func (r *Request) GetData(key string) interface{} {
-	if r.Data == nil {
-		return nil
-	}
-	return r.Data[key]
+	return r.Data.Get(key)
 }
