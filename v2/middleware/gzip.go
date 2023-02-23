@@ -9,7 +9,7 @@ import (
 )
 
 func GZIP(next router.Handler) router.Handler {
-	return router.ToHandler(func(r *request.Request) {
+	return router.HandleFunc(func(r *request.Request) {
 		r.Response.Header().Set("Content-Encoding", "gzip")
 		// Compress the response
 		var gz = gzip.NewWriter(r.Response)

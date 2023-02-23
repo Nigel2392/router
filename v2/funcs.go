@@ -56,10 +56,3 @@ func HTTPWrapper(handler func(http.ResponseWriter, *http.Request)) HandleFunc {
 		handler(r.Response, r.Request)
 	}
 }
-
-// Wrapper function for router.Handler to make it compatible with http.handler
-func HandlerWrapper(handler Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		handler.ServeHTTP(request.NewRequest(w, req, nil))
-	})
-}

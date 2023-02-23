@@ -7,7 +7,7 @@ import (
 
 func AddUserMiddleware(f func(*request.Request) request.User) router.Middleware {
 	return func(next router.Handler) router.Handler {
-		return router.ToHandler(func(r *request.Request) {
+		return router.HandleFunc(func(r *request.Request) {
 			r.User = f(r)
 			r.Data.User = r.User
 			next.ServeHTTP(r)
@@ -23,7 +23,7 @@ func LoginRequiredMiddleware(notAuth func(r *request.Request)) func(next router.
 		panic("LoginRequiredMiddleware: notAuth function is nil")
 	}
 	return func(next router.Handler) router.Handler {
-		return router.ToHandler(func(r *request.Request) {
+		return router.HandleFunc(func(r *request.Request) {
 			if r.User == nil || !r.User.IsAuthenticated() {
 				notAuth(r)
 			} else {
@@ -52,7 +52,7 @@ func LogoutRequiredMiddleware(isAuth func(r *request.Request)) func(next router.
 		panic("LogoutRequiredMiddleware: isAuth function is nil")
 	}
 	return func(next router.Handler) router.Handler {
-		return router.ToHandler(func(r *request.Request) {
+		return router.HandleFunc(func(r *request.Request) {
 			if r.User != nil && r.User.IsAuthenticated() {
 				isAuth(r)
 			} else {

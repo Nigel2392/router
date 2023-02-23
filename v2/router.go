@@ -69,17 +69,6 @@ type Registrar interface {
 	URL(args ...any) string
 }
 
-// Middleware is the function that is called when a route is matched
-type Middleware func(Handler) Handler
-
-// Handler is the interface that wraps the ServeHTTP method.
-type Handler interface {
-	ServeHTTP(*request.Request)
-}
-
-// HandleFunc is the function that is called when a route is matched
-type HandleFunc func(*request.Request)
-
 // Variable map passed to the route.
 type Vars map[string]string
 
@@ -233,7 +222,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		if ok, newRoute, vars := route.Match(req.Method, req.URL.Path); ok && newRoute.HandlerFunc != nil {
 
 			// Create a new handler
-			var handler Handler = handleFuncWrapper{newRoute.HandlerFunc}
+			var handler Handler = newRoute.HandlerFunc
 
 			// Run the route middleware
 			for i := len(newRoute.middleware) - 1; i >= 0; i-- {

@@ -11,7 +11,7 @@ import (
 )
 
 func PrinterFunc(next router.Handler, out io.Writer) router.Handler {
-	return router.ToHandler(func(r *request.Request) {
+	return router.HandleFunc(func(r *request.Request) {
 		start := time.Now()
 		method := r.Method()
 		path := r.Request.URL.Path

@@ -6,9 +6,19 @@ import (
 	"github.com/Nigel2392/router/v2/request"
 )
 
-// Make a new Handler
-func ToHandler(f func(*request.Request)) Handler {
-	return handleFuncWrapper{F: f}
+// Middleware is the function that is called when a route is matched
+type Middleware func(Handler) Handler
+
+// Handler is the interface that wraps the ServeHTTP method.
+type Handler interface {
+	ServeHTTP(*request.Request)
+}
+
+// HandleFunc is the function that is called when a route is matched
+type HandleFunc func(*request.Request)
+
+func (f HandleFunc) ServeHTTP(r *request.Request) {
+	f(r)
 }
 
 // Make a new handler from a http.Handler
@@ -32,14 +42,4 @@ type httpHandlerWrapper struct {
 // ServeHTTP implements the Handler interface
 func (h httpHandlerWrapper) ServeHTTP(r *request.Request) {
 	h.H.ServeHTTP(r.Response, r.Request)
-}
-
-// Wrapper function for HandleFunc to make it compatible with http.Handler
-type handleFuncWrapper struct {
-	F func(*request.Request)
-}
-
-// ServeHTTP implements the Handler interface
-func (h handleFuncWrapper) ServeHTTP(r *request.Request) {
-	h.F(r)
 }

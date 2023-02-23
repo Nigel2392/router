@@ -9,7 +9,7 @@ import (
 
 func Cache(maxAge int) func(next router.Handler) router.Handler {
 	return func(next router.Handler) router.Handler {
-		return router.ToHandler(func(r *request.Request) {
+		return router.HandleFunc(func(r *request.Request) {
 			for _, header := range etagHeaders {
 				r.Response.Header().Del(header)
 			}
@@ -29,7 +29,7 @@ var etagHeaders = []string{
 }
 
 func NoCache(next router.Handler) router.Handler {
-	return router.ToHandler(func(r *request.Request) {
+	return router.HandleFunc(func(r *request.Request) {
 		for _, header := range etagHeaders {
 			r.Response.Header().Del(header)
 		}

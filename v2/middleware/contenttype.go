@@ -15,7 +15,7 @@ func AllowContentType(contentTypes ...string) func(next router.Handler) router.H
 			allowedContentTypes[strings.TrimSpace(strings.ToLower(ctype))] = 0
 		}
 
-		return router.ToHandler(func(r *request.Request) {
+		return router.HandleFunc(func(r *request.Request) {
 
 			// Check if the body has content
 			if r.Request.ContentLength == 0 {

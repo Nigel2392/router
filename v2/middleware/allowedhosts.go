@@ -24,7 +24,7 @@ func AllowedHosts(allowed_hosts ...string) func(next router.Handler) router.Hand
 		}
 	}
 	return func(next router.Handler) router.Handler {
-		return router.ToHandler(func(r *request.Request) {
+		return router.HandleFunc(func(r *request.Request) {
 			// Check if ALLOWED_HOSTS is set and if the request host is allowed
 			var allowed = false
 			var requestHost = request.GetHost(r)
