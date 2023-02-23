@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/Nigel2392/router/v2/request"
+	"github.com/Nigel2392/routevars"
 )
 
 // HTTP Methods
@@ -118,20 +119,20 @@ func NewRouter(config *Config) *Router {
 // Route names are optional, when used a route's child can be access like so:
 // router.Route("routeName")
 // router.Route("parentName:childName")
-func (r *Router) Route(method, name string) *Route {
+func (r *Router) Route(method, name string) routevars.URLFormatter {
 	var parts = strings.Split(name, ":")
 	for _, route := range r.routes {
 		if len(parts) == 0 {
-			return nil
+			return ""
 		}
 		if route.name == parts[0] && route.Method == method && len(parts) == 1 || route.name == parts[0] && route.Method == ALL && len(parts) == 1 {
-			return route
+			return routevars.URLFormatter(route.Path)
 		}
-		if r := route.Route(method, parts[1:]); r != nil {
+		if r := route.Route(method, parts[1:]); r != "" {
 			return r
 		}
 	}
-	return nil
+	return ""
 }
 
 func (r *Router) server() *http.Server {

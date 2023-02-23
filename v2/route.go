@@ -1,9 +1,7 @@
 package router
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/Nigel2392/router/v2/request"
 	"github.com/Nigel2392/routevars"
@@ -26,26 +24,26 @@ func (r *Route) Name() string {
 }
 
 // Route returns the route that matches the given method and path
-func (r *Route) Route(method string, parts []string) *Route {
+func (r *Route) Route(method string, parts []string) routevars.URLFormatter {
 	if len(parts) == 0 {
-		return nil
+		return ""
 	}
 	var thismatch = r.name == parts[0]
 	if thismatch && r.Method == method || thismatch && r.Method == ALL {
-		return r
+		return ""
 	}
 	for _, route := range r.children {
 		if len(parts) == 1 {
 			var rmatch = route.name == parts[0]
 			if rmatch && route.Method == method || rmatch && route.Method == ALL {
-				return route
+				return routevars.URLFormatter(route.Path)
 			}
 		}
-		if r := route.Route(method, parts[1:]); r != nil {
+		if r := route.Route(method, parts[1:]); r != "" {
 			return r
 		}
 	}
-	return nil
+	return ""
 }
 
 // HandleFunc registers a new route with the given path and method.
@@ -180,43 +178,5 @@ func (r *Route) Use(middlewares ...Middleware) {
 // Format the url based on the arguments given.
 // Panics if route accepts more arguments than are given.
 func (r *Route) URL(args ...any) string {
-	var path = r.Path
-
-	// If the length of the path is less than the length of the pre/suffix and the delimiter
-	// then there are no variables in the path
-	if len(path) <= len(routevars.RT_PATH_VAR_DELIM)+len(routevars.RT_PATH_VAR_PREFIX)+len(routevars.RT_PATH_VAR_SUFFIX) {
-		return path
-	}
-	// Remove the first and last slash if they exist
-	var hasPrefixSlash = strings.HasPrefix(path, "/")
-	var hasTrailingSlash = strings.HasSuffix(path, "/")
-	if hasPrefixSlash {
-		path = path[1:]
-	}
-	if hasTrailingSlash {
-		path = path[:len(path)-1]
-	}
-	// Split the path into parts
-	var parts = strings.Split(path, "/")
-	// Replace the parts that are variables with the arguments
-	for i, part := range parts {
-		if strings.HasPrefix(part, routevars.RT_PATH_VAR_PREFIX) && strings.HasSuffix(part, routevars.RT_PATH_VAR_SUFFIX) {
-			if len(args) == 0 {
-				panic("not enough arguments for URL: " + r.Path)
-			}
-			var arg = args[0]
-			args = args[1:]
-			parts[i] = fmt.Sprintf("%v", arg)
-		}
-	}
-	// Join the parts back together
-	path = strings.Join(parts, "/")
-	// Add the slashes back if they were there
-	if hasPrefixSlash {
-		path = "/" + path
-	}
-	if hasTrailingSlash {
-		path = path + "/"
-	}
-	return path
+	return routevars.URLFormatter(r.Path).Format(args...)
 }
