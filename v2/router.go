@@ -118,7 +118,7 @@ func NewRouter(config *Config) *Router {
 // Route names are optional, when used a route's child can be access like so:
 // router.Route("routeName")
 // router.Route("parentName:childName")
-func (r *Router) Route(deepFind bool, method, name string) *Route {
+func (r *Router) Route(method, name string) *Route {
 	var parts = strings.Split(name, ":")
 	for _, route := range r.routes {
 		if len(parts) == 0 {
@@ -127,15 +127,8 @@ func (r *Router) Route(deepFind bool, method, name string) *Route {
 		if route.name == parts[0] && route.Method == method && len(parts) == 1 || route.name == parts[0] && route.Method == ALL && len(parts) == 1 {
 			return route
 		}
-		if r := route.Route(deepFind, method, parts[1:]); r != nil {
+		if r := route.Route(method, parts[1:]); r != nil {
 			return r
-		}
-	}
-	if deepFind {
-		for _, route := range r.routes {
-			if r := route.Route(deepFind, method, parts); r != nil {
-				return r
-			}
 		}
 	}
 	return nil

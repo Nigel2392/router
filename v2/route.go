@@ -26,7 +26,7 @@ func (r *Route) Name() string {
 }
 
 // Route returns the route that matches the given method and path
-func (r *Route) Route(deepFind bool, method string, parts []string) *Route {
+func (r *Route) Route(method string, parts []string) *Route {
 	if len(parts) == 0 {
 		return nil
 	}
@@ -41,15 +41,8 @@ func (r *Route) Route(deepFind bool, method string, parts []string) *Route {
 				return route
 			}
 		}
-		if r := route.Route(deepFind, method, parts[1:]); r != nil {
+		if r := route.Route(method, parts[1:]); r != nil {
 			return r
-		}
-	}
-	if deepFind {
-		for _, route := range r.children {
-			if r := route.Route(deepFind, method, parts); r != nil {
-				return r
-			}
 		}
 	}
 	return nil
