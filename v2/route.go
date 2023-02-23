@@ -17,10 +17,50 @@ type Route struct {
 	middleware        []Middleware
 	children          []*Route
 	middlewareEnabled bool
+	name              string
+}
+
+// Return the name of the route
+func (r *Route) Name() string {
+	return r.name
+}
+
+// Route returns the route that matches the given method and path
+func (r *Route) Route(deepFind bool, method string, parts []string) *Route {
+	if len(parts) == 0 {
+		return nil
+	}
+	var thismatch = r.name == parts[0]
+	if thismatch && r.Method == method || thismatch && r.Method == ALL {
+		return r
+	}
+	for _, route := range r.children {
+		if len(parts) == 1 {
+			var rmatch = route.name == parts[0]
+			if rmatch && route.Method == method || rmatch && route.Method == ALL {
+				return route
+			}
+		}
+		if r := route.Route(deepFind, method, parts[1:]); r != nil {
+			return r
+		}
+	}
+	if deepFind {
+		for _, route := range r.children {
+			if r := route.Route(deepFind, method, parts); r != nil {
+				return r
+			}
+		}
+	}
+	return nil
 }
 
 // HandleFunc registers a new route with the given path and method.
-func (r *Route) HandleFunc(method, path string, handler HandleFunc) Registrar {
+func (r *Route) HandleFunc(method, path string, handler HandleFunc, name ...string) Registrar {
+	var n = r.name
+	if len(name) > 0 {
+		n = name[0]
+	}
 	path = r.Path + path
 	var child = &Route{
 		Method:            method,
@@ -28,6 +68,7 @@ func (r *Route) HandleFunc(method, path string, handler HandleFunc) Registrar {
 		HandlerFunc:       handler,
 		middleware:        make([]Middleware, 0),
 		middlewareEnabled: r.middlewareEnabled,
+		name:              n,
 	}
 	r.children = append(r.children, child)
 	return child
@@ -48,51 +89,52 @@ func (r *Route) Handle(method, path string, handler http.Handler) Registrar {
 }
 
 // Put registers a new route with the given path and method.
-func (r *Route) Put(path string, handler HandleFunc) Registrar {
-	return r.HandleFunc("PUT", path, handler)
+func (r *Route) Put(path string, handler HandleFunc, name ...string) Registrar {
+	return r.HandleFunc("PUT", path, handler, name...)
 }
 
 // Post registers a new route with the given path and method.
-func (r *Route) Post(path string, handler HandleFunc) Registrar {
-	return r.HandleFunc("POST", path, handler)
+func (r *Route) Post(path string, handler HandleFunc, name ...string) Registrar {
+	return r.HandleFunc("POST", path, handler, name...)
 }
 
 // Get registers a new route with the given path and method.
-func (r *Route) Get(path string, handler HandleFunc) Registrar {
-	return r.HandleFunc("GET", path, handler)
+func (r *Route) Get(path string, handler HandleFunc, name ...string) Registrar {
+	return r.HandleFunc("GET", path, handler, name...)
 }
 
 // Delete registers a new route with the given path and method.
-func (r *Route) Delete(path string, handler HandleFunc) Registrar {
-	return r.HandleFunc("DELETE", path, handler)
+func (r *Route) Delete(path string, handler HandleFunc, name ...string) Registrar {
+	return r.HandleFunc("DELETE", path, handler, name...)
 }
 
 // Patch registers a new route with the given path and method.
-func (r *Route) Patch(path string, handler HandleFunc) Registrar {
-	return r.HandleFunc("PATCH", path, handler)
+func (r *Route) Patch(path string, handler HandleFunc, name ...string) Registrar {
+	return r.HandleFunc("PATCH", path, handler, name...)
 }
 
 // Options registers a new route with the given path and method.
-func (r *Route) Options(path string, handler HandleFunc) Registrar {
-	return r.HandleFunc("OPTIONS", path, handler)
+func (r *Route) Options(path string, handler HandleFunc, name ...string) Registrar {
+	return r.HandleFunc("OPTIONS", path, handler, name...)
 }
 
 // Head registers a new route with the given path and method.
-func (r *Route) Head(path string, handler HandleFunc) Registrar {
-	return r.HandleFunc("HEAD", path, handler)
+func (r *Route) Head(path string, handler HandleFunc, name ...string) Registrar {
+	return r.HandleFunc("HEAD", path, handler, name...)
 }
 
 // Register a route for all methods
-func (r *Route) Any(path string, handler HandleFunc) Registrar {
-	return r.HandleFunc(ALL, path, handler)
+func (r *Route) Any(path string, handler HandleFunc, name ...string) Registrar {
+	return r.HandleFunc(ALL, path, handler, name...)
 }
 
 // Group creates a new group of routes
-func (r *Route) Group(path string, middlewares ...Middleware) Registrar {
+func (r *Route) Group(path string, name string, middlewares ...Middleware) Registrar {
 	var route = &Route{
 		Path:              r.Path + path,
 		middleware:        middlewares,
 		middlewareEnabled: r.middlewareEnabled,
+		name:              name,
 	}
 	r.children = append([]*Route{route}, r.children...)
 	return route

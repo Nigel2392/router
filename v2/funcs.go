@@ -19,8 +19,9 @@ func niceAddr(addr string) string {
 }
 
 // Group creates a new router URL group
-func Group(path string) Registrar {
+func Group(path string, name string) Registrar {
 	var route = &Route{Path: path, middlewareEnabled: true}
+	route.name = name
 	return route
 }
 

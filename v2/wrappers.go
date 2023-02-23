@@ -21,6 +21,16 @@ func (f HandleFunc) ServeHTTP(r *request.Request) {
 	f(r)
 }
 
+// Wrapper function for http.Handler to make it compatible with Handler
+type httpHandlerWrapper struct {
+	H http.Handler
+}
+
+// ServeHTTP implements the Handler interface
+func (h httpHandlerWrapper) ServeHTTP(r *request.Request) {
+	h.H.ServeHTTP(r.Response, r.Request)
+}
+
 // Make a new handler from a http.Handler
 func FromHTTPHandler(h http.Handler) Handler {
 	return httpHandlerWrapper{H: h}
@@ -32,14 +42,4 @@ func ToHTTPHandler(h Handler) http.Handler {
 		h.ServeHTTP(request.NewRequest(w, r, nil))
 	}
 	return http.HandlerFunc(f)
-}
-
-// Wrapper function for http.Handler to make it compatible with Handler
-type httpHandlerWrapper struct {
-	H http.Handler
-}
-
-// ServeHTTP implements the Handler interface
-func (h httpHandlerWrapper) ServeHTTP(r *request.Request) {
-	h.H.ServeHTTP(r.Response, r.Request)
 }
