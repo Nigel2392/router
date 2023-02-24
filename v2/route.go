@@ -35,7 +35,9 @@ func (r *Route) Route(method string, parts []string) routevars.URLFormatter {
 	for _, route := range r.children {
 		if len(parts) == 1 {
 			var rmatch = route.name == parts[0]
-			if rmatch && route.Method == method || rmatch && route.Method == ALL {
+			if rmatch && route.Method == method ||
+				rmatch && route.Method == ALL ||
+				rmatch && method == ALL {
 				return route.Path
 			}
 		}

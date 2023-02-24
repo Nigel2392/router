@@ -127,8 +127,12 @@ func (r *Router) Route(method, name string) routevars.URLFormatter {
 		if len(parts) == 0 {
 			return ""
 		}
-		if route.name == parts[0] && route.Method == method && len(parts) == 1 || route.name == parts[0] && route.Method == ALL && len(parts) == 1 {
-			return route.Path
+		if route.name == parts[0] {
+			if route.Method == method && len(parts) == 1 ||
+				route.Method == ALL && len(parts) == 1 ||
+				method == ALL && len(parts) == 1 {
+				return route.Path
+			}
 		}
 		if r := route.Route(method, parts[1:]); r != "" {
 			return r
