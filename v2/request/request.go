@@ -17,6 +17,7 @@ type User interface {
 	IsAuthenticated() bool
 }
 
+// This interface is used to retrieve the request host.
 type RequestConstraint interface {
 	*Request | *http.Request
 }
@@ -141,6 +142,7 @@ func (r *Request) Next() string {
 			})
 		}
 	} else {
+		// We have sessions! :)
 		if next, ok := r.Session.Get("next").(string); ok {
 			r.next = next
 			r.Session.Delete("next")
