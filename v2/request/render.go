@@ -24,7 +24,6 @@ func (r *Request) Render(templateName string) error {
 	if r.Session != nil {
 		var messages = r.Session.Get(MESSAGE_COOKIE_NAME)
 		if messages != nil {
-			fmt.Println("Messages:", messages)
 			var messagesCasted, ok = messages.(Messages)
 			if !ok {
 				return fmt.Errorf("Messages in session are not of type Messages, but %T", messages)
