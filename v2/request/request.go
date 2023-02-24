@@ -196,8 +196,8 @@ func (r *Request) Redirect(redirectURL string, statuscode int, next ...string) {
 		if r.Data != nil {
 			r.Session.Set(MESSAGE_COOKIE_NAME, r.Data.Messages)
 		}
-		if r.next != "" {
-			r.Session.Set(NEXT_COOKIE_NAME, r.next)
+		if len(next) > 0 && next[0] != "" {
+			r.Session.Set(NEXT_COOKIE_NAME, next[0])
 		}
 	}
 
