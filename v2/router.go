@@ -64,10 +64,6 @@ type Registrar interface {
 
 	// Addgroup adds a group of routes to the router
 	AddGroup(group Registrar)
-
-	// This is the only function the router does not implement.
-	// Formats the URL for the given route, based on the given arguments.
-	URL(args ...any) string
 }
 
 // Variable map passed to the route.
@@ -121,20 +117,20 @@ func NewRouter(config *Config) *Router {
 // Route names are optional, when used a route's child can be access like so:
 // router.Route("routeName")
 // router.Route("parentName:childName")
-func (r *Router) Route(method, name string) routevars.URLFormatter {
+func (r *Router) URL(method, name string) routevars.URLFormatter {
 	var parts = strings.Split(name, ":")
 	for _, route := range r.routes {
 		if len(parts) == 0 {
 			return ""
 		}
-		if route.name == parts[0] {
-			if route.Method == method && len(parts) == 1 ||
-				route.Method == ALL && len(parts) == 1 ||
-				method == ALL && len(parts) == 1 {
+		if route.name == parts[0] && len(parts) == 1 {
+			if route.Method == method ||
+				route.Method == ALL ||
+				method == ALL {
 				return route.Path
 			}
 		}
-		if r := route.Route(method, parts[1:]); r != "" {
+		if r := route.url(method, parts[1:]); r != "" {
 			return r
 		}
 	}

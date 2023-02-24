@@ -24,7 +24,7 @@ func (r *Route) Name() string {
 }
 
 // Route returns the route that matches the given method and path
-func (r *Route) Route(method string, parts []string) routevars.URLFormatter {
+func (r *Route) url(method string, parts []string) routevars.URLFormatter {
 	if len(parts) == 0 {
 		return ""
 	}
@@ -41,7 +41,7 @@ func (r *Route) Route(method string, parts []string) routevars.URLFormatter {
 				return route.Path
 			}
 		}
-		if r := route.Route(method, parts[1:]); r != "" {
+		if r := route.url(method, parts[1:]); r != "" {
 			return r
 		}
 	}
@@ -175,10 +175,4 @@ func (r *Route) Use(middlewares ...Middleware) {
 	for _, child := range r.children {
 		child.Use(middlewares...)
 	}
-}
-
-// Format the url based on the arguments given.
-// Panics if route accepts more arguments than are given.
-func (r *Route) URL(args ...any) string {
-	return routevars.URLFormatter(r.Path).Format(args...)
 }
