@@ -39,6 +39,22 @@ func defaultJSONFunc(req *request.Request) {
     })
 }
 
+// Configuration options for the router
+var Config = &router.Config{
+	// Server options.
+	Host: "localhost",
+	Port: 8080,
+	// Recommended to be true!
+	SkipTrailingSlash: true,
+	// The server to use,
+	// if nil, a new http.Server will be created.
+	// Addr will always be overwritten, so will the handler.
+	Server: &http.Server{},
+	// Default handler to use when no route is found.
+	// If nil, http.NotFound will be used.
+	NotFoundHandler: nil,
+}
+
 func main(){
     // Initialize the router
     var SessionStore = scs.New()
@@ -79,6 +95,13 @@ func main(){
     var json2 = r.URL(router.POST, "api:json2")
     fmt.Println(json.Format())
     fmt.Println(json2.Format())
+
+    // The router is compliant with the http.Handler interface.
+    // This means that you can use it as a handler for your own server, 
+    // Or serve from the router itself, using the server in the defined config.
+    if err := r.Listen(); err != nil {
+        fmt.Println(err)
+    }
 }
 ```
 
