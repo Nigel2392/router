@@ -170,6 +170,7 @@ func (r *Request) Redirect(redirectURL string, statuscode int, next ...string) {
 			http.SetCookie(r.Response, cookie)
 		}
 	} else {
+		// We have sessions! :)
 		if r.Data != nil {
 			r.Session.Set("messages", r.Data.Messages)
 		}
