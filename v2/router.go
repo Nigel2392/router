@@ -71,8 +71,6 @@ type Vars map[string]string
 
 // Configuration options for the router, and serving.
 type Config struct {
-	// Asynchronously traverse the route trees?
-	Async bool
 	// The address to listen on
 	Host string
 	Port int
