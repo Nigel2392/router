@@ -1,8 +1,13 @@
 package request
 
 import (
+	"encoding/gob"
 	"html/template"
 )
+
+func init() {
+	gob.Register([]Message{})
+}
 
 type CSRFToken struct {
 	Token string
