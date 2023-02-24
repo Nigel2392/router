@@ -1,4 +1,4 @@
-package scs
+package scsmiddleware
 
 import (
 	"bufio"
