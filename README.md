@@ -53,7 +53,7 @@ func main(){
 
     // Register URLs
     r.Get("/", indexFunc, "index")
-    r.Get("/user/<<name:string>>/<<id:int>>", variableFunc,     "user")
+    r.Get("/variable/<<name:string>>/<<id:int>>", variableFunc, "variable")
 
     // Register groups of URLs
     var group = r.Group("/api", "api")
