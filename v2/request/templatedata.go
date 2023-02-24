@@ -1,12 +1,14 @@
 package request
 
 import (
+	"bytes"
+	"encoding/base64"
 	"encoding/gob"
 	"html/template"
 )
 
 func init() {
-	gob.Register([]Message{})
+	gob.Register(Messages{})
 }
 
 type CSRFToken struct {
@@ -27,14 +29,14 @@ func (ct *CSRFToken) Input() template.HTML {
 
 type TemplateData struct {
 	Data      map[string]any
-	Messages  []Message
+	Messages  Messages
 	CSRFToken *CSRFToken
 	User      interface{}
 	Next      string
 }
 
 func NewTemplateData() *TemplateData {
-	return &TemplateData{Data: make(map[string]any), Messages: make([]Message, 0)}
+	return &TemplateData{Data: make(map[string]any), Messages: make(Messages, 0)}
 }
 
 func (td *TemplateData) AddMessage(messageType, message string) {
@@ -65,4 +67,24 @@ func (td *TemplateData) Delete(key string) {
 type Message struct {
 	Type string
 	Text string
+}
+
+type Messages []Message
+
+func (m Messages) Encode() string {
+	var buf = bytes.Buffer{}
+	enc := gob.NewEncoder(&buf)
+	enc.Encode(m)
+	// Encode with base64
+	return base64.StdEncoding.EncodeToString(buf.Bytes())
+}
+
+func (m *Messages) Decode(data string) error {
+	// Decode with base64
+	var buf, err = base64.StdEncoding.DecodeString(data)
+	if err != nil {
+		return err
+	}
+	dec := gob.NewDecoder(bytes.NewBuffer(buf))
+	return dec.Decode(m)
 }

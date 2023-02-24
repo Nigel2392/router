@@ -8,6 +8,9 @@ import (
 	"time"
 )
 
+const MESSAGE_COOKIE_NAME = "messages"
+const NEXT_COOKIE_NAME = "next"
+
 // Default request user interface.
 // This interface is used to check if a user is authenticated.
 // This interface is used by the LoginRequiredMiddleware and LogoutRequiredMiddleware.
@@ -132,20 +135,20 @@ func (r *Request) Next() string {
 	if r.Session == nil {
 		// Set the next url if it exists.
 		// This is based on cookies.
-		if cookie, err := r.Request.Cookie("next"); err == nil {
+		if cookie, err := r.Request.Cookie(NEXT_COOKIE_NAME); err == nil {
 			r.next = cookie.Value
 			// Delete the cookie.
 			http.SetCookie(r.Response, &http.Cookie{
-				Name:    "next",
+				Name:    NEXT_COOKIE_NAME,
 				Value:   "",
 				Expires: time.Now().Add(-time.Hour),
 			})
 		}
 	} else {
 		// We have sessions! :)
-		if next, ok := r.Session.Get("next").(string); ok {
+		if next, ok := r.Session.Get(NEXT_COOKIE_NAME).(string); ok {
 			r.next = next
-			r.Session.Delete("next")
+			r.Session.Delete(NEXT_COOKIE_NAME)
 		}
 	}
 	return r.next
@@ -164,20 +167,37 @@ func (r *Request) Redirect(redirectURL string, statuscode int, next ...string) {
 		// If there is a next parameter, add it to the cookies.
 		if len(next) > 0 && next[0] != "" {
 			var cookie = &http.Cookie{
-				Name:     "next",
+				Name:     NEXT_COOKIE_NAME,
 				Value:    next[0],
 				Path:     "/",
 				HttpOnly: true,
+				Expires:  time.Now().Add(time.Hour * 24 * 30),
+				Secure:   r.Request.TLS != nil,
+				MaxAge:   60 * 60 * 24 * 30,
 			}
 			http.SetCookie(r.Response, cookie)
 		}
+		// Set the messages in the cookies.
+		if r.Data != nil {
+			var cookie = &http.Cookie{
+				Name:     MESSAGE_COOKIE_NAME,
+				Value:    r.Data.Messages.Encode(),
+				Path:     "/",
+				HttpOnly: true,
+				Expires:  time.Now().Add(time.Hour * 24 * 30),
+				Secure:   r.Request.TLS != nil,
+				MaxAge:   60 * 60 * 24 * 30,
+			}
+			http.SetCookie(r.Response, cookie)
+		}
+
 	} else {
 		// We have sessions! :)
 		if r.Data != nil {
-			r.Session.Set("messages", r.Data.Messages)
+			r.Session.Set(MESSAGE_COOKIE_NAME, r.Data.Messages)
 		}
 		if r.next != "" {
-			r.Session.Set("next", r.next)
+			r.Session.Set(NEXT_COOKIE_NAME, r.next)
 		}
 	}
 
