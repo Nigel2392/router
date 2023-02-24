@@ -57,12 +57,6 @@ func (td *TemplateData) Delete(key string) {
 	delete(td.Data, key)
 }
 
-//	func (td *TemplateData) makeMap() {
-//		if td.Data == nil {
-//			td.Data = make(map[string]any)
-//		}
-//	}
-
 type Message struct {
 	Type string
 	Text string

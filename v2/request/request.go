@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 )
 
 // Default request user interface.
@@ -26,6 +27,7 @@ type Session interface {
 	Set(key string, value interface{})
 	Get(key string) interface{}
 	Exists(key string) bool
+	Delete(key string)
 	Destroy() error
 }
 
@@ -53,6 +55,7 @@ type Request struct {
 	form      url.Values
 	User      User
 	JSON      *_json
+	next      string
 }
 
 // Initialize a new request.
@@ -88,16 +91,6 @@ func (r *Request) Method() string {
 	return r.Request.Method
 }
 
-// Check if the request method is POST.
-func (r *Request) IsPost() bool {
-	return r.Request.Method == http.MethodPost
-}
-
-// Check if the request method is GET.
-func (r *Request) IsGet() bool {
-	return r.Request.Method == http.MethodGet
-}
-
 // Parse the form, and return the form values.
 func (r *Request) Form() url.Values {
 	if r.form == nil {
@@ -126,4 +119,65 @@ func (r *Request) SetData(key string, value interface{}) {
 // Get a data value.
 func (r *Request) GetData(key string) interface{} {
 	return r.Data.Get(key)
+}
+
+// Get the Next url.
+// This is the url that was set in the session/cookies.
+// This is used to redirect back to the same page.
+func (r *Request) Next() string {
+	if r.next != "" {
+		return r.next
+	}
+	if r.Session == nil {
+		// Set the next url if it exists.
+		// This is based on cookies.
+		if cookie, err := r.Request.Cookie("next"); err == nil {
+			r.next = cookie.Value
+			// Delete the cookie.
+			http.SetCookie(r.Response, &http.Cookie{
+				Name:    "next",
+				Value:   "",
+				Expires: time.Now().Add(-time.Hour),
+			})
+		}
+	} else {
+		if next, ok := r.Session.Get("next").(string); ok {
+			r.next = next
+			r.Session.Delete("next")
+		}
+	}
+	return r.next
+}
+
+// Redirect to a URL.
+// If the session is defined, the messages will be set in the session.
+// If the `next` argument is given, it will be added to session, unless
+// the session is not defined, the `next` parameter will be added to cookies.
+// This means they will be carried across when rendering with request.Render().
+// This will be set again after the redirect, when rendering in the default Data.
+// Optionally you could obtain this by calling request.Next().
+func (r *Request) Redirect(redirectURL string, statuscode int, next ...string) {
+	// Set the messages in the session/cookies for after the redirect.
+	if r.Session == nil {
+		// If there is a next parameter, add it to the cookies.
+		if len(next) > 0 && next[0] != "" {
+			var cookie = &http.Cookie{
+				Name:     "next",
+				Value:    next[0],
+				Path:     "/",
+				HttpOnly: true,
+			}
+			http.SetCookie(r.Response, cookie)
+		}
+	} else {
+		if r.Data != nil {
+			r.Session.Set("messages", r.Data.Messages)
+		}
+		if r.next != "" {
+			r.Session.Set("next", r.next)
+		}
+	}
+
+	// Redirect.
+	http.Redirect(r.Response, r.Request, redirectURL, statuscode)
 }

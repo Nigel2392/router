@@ -33,6 +33,10 @@ func (s *scsRequestSession) Exists(key string) bool {
 	return s.store.Exists(s.r.Request.Context(), key)
 }
 
+func (s *scsRequestSession) Delete(key string) {
+	s.store.Remove(s.r.Request.Context(), key)
+}
+
 // Customized version of scs's Middleware function
 // This is due to the fact that the original Middleware function
 // does not support the router.Handler interface

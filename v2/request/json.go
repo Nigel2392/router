@@ -15,6 +15,8 @@ const (
 
 // Default json response which gets returned when using (j).Encode().
 type JSONResponse struct {
+	Next   string         `json:"next,omitempty"`
+	Detail string         `json:"detail,omitempty"`
 	Status ResponseStatus `json:"status"`
 	Data   interface{}    `json:"data"`
 }
@@ -22,6 +24,17 @@ type JSONResponse struct {
 // Intermediate struct for json encoding/decoding.
 type _json struct {
 	r **Request
+}
+
+// Encode json to a request.
+func (j *_json) SendResponse(jsonResponse *JSONResponse) error {
+	var jsonData, err = json.Marshal(jsonResponse)
+	if err != nil {
+		return err
+	}
+	(*j.r).Response.Header().Set("Content-Type", "application/json")
+	(*j.r).Response.Write(jsonData)
+	return nil
 }
 
 // Render json to a request.
