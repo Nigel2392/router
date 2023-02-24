@@ -75,6 +75,8 @@ type Vars map[string]string
 
 // Configuration options for the router, and serving.
 type Config struct {
+	// Asynchronously traverse the route trees?
+	Async bool
 	// The address to listen on
 	Host string
 	Port int
@@ -235,6 +237,16 @@ func (r *Router) AddGroup(group Registrar) {
 	r.routes = append(r.routes, group.(*Route))
 }
 
+// Match returns the route that matches the given method and path.
+func (r *Router) Match(method, path string) (bool, *Route, request.URLParams) {
+	for _, route := range r.routes {
+		if ok, newRoute, vars := route.Match(method, path); ok {
+			return ok, newRoute, vars
+		}
+	}
+	return false, nil, nil
+}
+
 // ServeHTTP dispatches the request to the handler whose
 // pattern matches the request URL.
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -243,30 +255,29 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		req.URL.Path = req.URL.Path[:len(req.URL.Path)-1]
 	}
 
-	for _, route := range r.routes {
-		if ok, newRoute, vars := route.Match(req.Method, req.URL.Path); ok && newRoute.HandlerFunc != nil {
+	var ok, newRoute, vars = r.Match(req.Method, req.URL.Path)
+	if ok {
+		// Create a new handler
+		var handler Handler = newRoute.HandlerFunc
 
-			// Create a new handler
-			var handler Handler = newRoute.HandlerFunc
-
-			// Run the route middleware
-			for i := len(newRoute.middleware) - 1; i >= 0; i-- {
-				handler = newRoute.middleware[i](handler)
-			}
-
-			// Only run the global middleware if the
-			// route has middleware enabled
-			if newRoute.middlewareEnabled && len(r.middleware) > 0 {
-				for i := len(r.middleware) - 1; i >= 0; i-- {
-					handler = r.middleware[i](handler)
-				}
-			}
-
-			// Serve the request
-			handler.ServeHTTP(request.NewRequest(w, req, vars))
-			return
+		// Run the route middleware
+		for i := len(newRoute.middleware) - 1; i >= 0; i-- {
+			handler = newRoute.middleware[i](handler)
 		}
+
+		// Only run the global middleware if the
+		// route has middleware enabled
+		if newRoute.middlewareEnabled && len(r.middleware) > 0 {
+			for i := len(r.middleware) - 1; i >= 0; i-- {
+				handler = r.middleware[i](handler)
+			}
+		}
+
+		// Serve the request
+		handler.ServeHTTP(request.NewRequest(w, req, vars))
+		return
 	}
+
 	if r.conf.NotFoundHandler != nil {
 		r.conf.NotFoundHandler.ServeHTTP(request.NewRequest(w, req, nil))
 		return
