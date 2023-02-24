@@ -1,6 +1,7 @@
 package request
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -20,24 +21,26 @@ func (r *Request) Render(templateName string) error {
 	r.Data.Next = r.Next()
 
 	// Get the messages from the session
-	if r.Session == nil {
-		r.Data.Messages = make([]Message, 0)
+	if r.Session != nil {
+		var messages = r.Session.Get(MESSAGE_COOKIE_NAME)
+		if messages != nil {
+			fmt.Println("Messages:", messages)
+			var messagesCasted, ok = messages.(Messages)
+			if !ok {
+				return fmt.Errorf("Messages in session are not of type Messages, but %T", messages)
+			}
+			r.Data.Messages = append(r.Data.Messages, messagesCasted...)
+			r.Session.Delete(MESSAGE_COOKIE_NAME)
+		}
+	} else {
 		if cookie, err := r.Request.Cookie(MESSAGE_COOKIE_NAME); err == nil {
-			r.Data.Messages.Decode(cookie.Value)
+			(&r.Data.Messages).Decode(cookie.Value)
 			// Delete the cookie.
 			http.SetCookie(r.Response, &http.Cookie{
 				Name:    MESSAGE_COOKIE_NAME,
 				Value:   "",
 				Expires: time.Now().Add(-time.Hour),
 			})
-		}
-	} else {
-		if r.Data.Messages == nil {
-			r.Data.Messages = make([]Message, 0)
-		}
-		if messages, ok := r.Session.Get(MESSAGE_COOKIE_NAME).([]Message); ok {
-			r.Data.Messages = append(r.Data.Messages, messages...)
-			r.Session.Delete(MESSAGE_COOKIE_NAME)
 		}
 	}
 
