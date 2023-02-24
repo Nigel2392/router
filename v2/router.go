@@ -229,8 +229,8 @@ func (r *Router) Use(middlewares ...Middleware) {
 }
 
 // Group creates a new router URL group
-func (r *Router) Group(path string, middlewares ...Middleware) Registrar {
-	var route = &Route{Path: routevars.URLFormatter(path), middlewareEnabled: true}
+func (r *Router) Group(path string, name string, middlewares ...Middleware) Registrar {
+	var route = &Route{Path: routevars.URLFormatter(path), middlewareEnabled: true, name: name}
 	r.routes = append(r.routes, route)
 	route.middleware = append(r.middleware, middlewares...)
 	return route
