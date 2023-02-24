@@ -5,6 +5,7 @@ import (
 	"github.com/Nigel2392/router/v2/request"
 )
 
+// Helper function to more easily add a user to the request.
 func AddUserMiddleware(f func(*request.Request) request.User) router.Middleware {
 	return func(next router.Handler) router.Handler {
 		return router.HandleFunc(func(r *request.Request) {

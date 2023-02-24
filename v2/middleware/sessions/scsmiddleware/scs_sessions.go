@@ -59,7 +59,7 @@ func SessionMiddleware(store *scs.SessionManager) func(next router.Handler) rout
 			r.Response = bw
 			// Set the new request with the context
 			r.Request = sr
-
+			// Set the session on the request
 			r.Session = &scsRequestSession{r: r, store: store}
 
 			next.ServeHTTP(r)

@@ -11,7 +11,7 @@ var (
 	// Default base template suffixes
 	BASE_TEMPLATE_SUFFIXES = []string{".tmpl", ".html"}
 	// Default directory to look in for base templates
-	BASE_TEMPLATE_DIRS = []string{"templates/base"}
+	BASE_TEMPLATE_DIRS = []string{"base"}
 	TEMPLATE_DIRS      = []string{"templates"}
 	// Functions to add to templates
 	DEFAULT_FUNCS = make(template.FuncMap)
