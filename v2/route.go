@@ -10,7 +10,7 @@ import (
 // Route is a single route in the router
 type Route struct {
 	Method            string
-	Path              string
+	Path              routevars.URLFormatter
 	HandlerFunc       HandleFunc
 	middleware        []Middleware
 	children          []*Route
@@ -36,7 +36,7 @@ func (r *Route) Route(method string, parts []string) routevars.URLFormatter {
 		if len(parts) == 1 {
 			var rmatch = route.name == parts[0]
 			if rmatch && route.Method == method || rmatch && route.Method == ALL {
-				return routevars.URLFormatter(route.Path)
+				return route.Path
 			}
 		}
 		if r := route.Route(method, parts[1:]); r != "" {
@@ -52,10 +52,10 @@ func (r *Route) HandleFunc(method, path string, handler HandleFunc, name ...stri
 	if len(name) > 0 {
 		n = name[0]
 	}
-	path = r.Path + path
+	path = string(r.Path) + path
 	var child = &Route{
 		Method:            method,
-		Path:              path,
+		Path:              routevars.URLFormatter(path),
 		HandlerFunc:       handler,
 		middleware:        make([]Middleware, 0),
 		middlewareEnabled: r.middlewareEnabled,
@@ -122,7 +122,7 @@ func (r *Route) Any(path string, handler HandleFunc, name ...string) Registrar {
 // Group creates a new group of routes
 func (r *Route) Group(path string, name string, middlewares ...Middleware) Registrar {
 	var route = &Route{
-		Path:              r.Path + path,
+		Path:              r.Path + routevars.URLFormatter(path),
 		middleware:        middlewares,
 		middlewareEnabled: r.middlewareEnabled,
 		name:              name,
@@ -154,7 +154,7 @@ func (r *Route) Match(method, path string) (bool, *Route, request.URLParams) {
 		}
 	}
 	if r.HandlerFunc != nil {
-		var ok, vars = routevars.Match(r.Path, path)
+		var ok, vars = r.Path.Match(path)
 		if ok {
 			return true, r, vars
 		}

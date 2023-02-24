@@ -126,7 +126,7 @@ func (r *Router) Route(method, name string) routevars.URLFormatter {
 			return ""
 		}
 		if route.name == parts[0] && route.Method == method && len(parts) == 1 || route.name == parts[0] && route.Method == ALL && len(parts) == 1 {
-			return routevars.URLFormatter(route.Path)
+			return route.Path
 		}
 		if r := route.Route(method, parts[1:]); r != "" {
 			return r
@@ -162,7 +162,7 @@ func (r *Router) ListenTLS(certFile, keyFile string) error {
 
 // HandleFunc registers a new route with the given path and method.
 func (r *Router) HandleFunc(method, path string, handler HandleFunc, name ...string) Registrar {
-	var route = &Route{Method: method, Path: path, HandlerFunc: handler, middlewareEnabled: true, middleware: r.middleware}
+	var route = &Route{Method: method, Path: routevars.URLFormatter(path), HandlerFunc: handler, middlewareEnabled: true, middleware: r.middleware}
 
 	if len(name) > 0 {
 		route.name = name[0]
@@ -224,7 +224,7 @@ func (r *Router) Use(middlewares ...Middleware) {
 
 // Group creates a new router URL group
 func (r *Router) Group(path string, middlewares ...Middleware) Registrar {
-	var route = &Route{Path: path, middlewareEnabled: true}
+	var route = &Route{Path: routevars.URLFormatter(path), middlewareEnabled: true}
 	r.routes = append(r.routes, route)
 	route.middleware = append(r.middleware, middlewares...)
 	return route
@@ -304,7 +304,7 @@ func (r *Router) SiteMap() []byte {
 			var d = priority(depth)
 			if route.HandlerFunc != nil {
 				buffer.WriteString("		<url>\n")
-				buffer.WriteString("			<loc>" + safePath(route.Path) + "</loc>\n")
+				buffer.WriteString("			<loc>" + safePath(string(route.Path)) + "</loc>\n")
 				buffer.WriteString("			<priority>" + fmt.Sprintf("%.2f", d) + "</priority>\n")
 				buffer.WriteString("		</url>\n")
 			}

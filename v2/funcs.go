@@ -5,6 +5,7 @@ import (
 	"net/url"
 
 	"github.com/Nigel2392/router/v2/request"
+	"github.com/Nigel2392/routevars"
 )
 
 // format an address for printing
@@ -20,7 +21,7 @@ func niceAddr(addr string) string {
 
 // Group creates a new router URL group
 func Group(path string, name string) Registrar {
-	var route = &Route{Path: path, middlewareEnabled: true}
+	var route = &Route{Path: routevars.URLFormatter(path), middlewareEnabled: true}
 	route.name = name
 	return route
 }
