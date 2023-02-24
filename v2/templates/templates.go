@@ -12,8 +12,7 @@ var (
 	BASE_TEMPLATE_SUFFIXES = []string{".tmpl", ".html"}
 	// Default directory to look in for base templates
 	BASE_TEMPLATE_DIRS = []string{"templates/base"}
-	// Default directory to look in for templates
-	TEMPLATE_DIRS = []string{"templates"}
+	TEMPLATE_DIRS      = []string{"templates"}
 	// Functions to add to templates
 	DEFAULT_FUNCS = make(template.FuncMap)
 	// Template file system
@@ -57,12 +56,14 @@ func GetTemplate(templateName string) (*template.Template, string, error) {
 			for _, directory := range directories {
 				// Check if file exists
 				var dirName = NicePath(false, directory, templateName)
-				if _, err := fs.Stat(TEMPLATEFS, dirName); err == nil {
+				var _, err = fs.Stat(TEMPLATEFS, dirName)
+				if err == nil {
 					template_name = dirName
 					break
 				}
 			}
-		} else {
+		}
+		if template_name == "" {
 			template_name = NicePath(false, templateName)
 		}
 		var err error
@@ -70,7 +71,7 @@ func GetTemplate(templateName string) (*template.Template, string, error) {
 		t.Funcs(DEFAULT_FUNCS)
 		t, err = t.ParseFS(TEMPLATEFS, append(base_templates, template_name)...)
 		if err != nil {
-			return nil, "", err
+			return nil, "", errors.New("Error parsing template: " + template_name + " (" + err.Error() + ")")
 		}
 		templateCache.Set(templateName, t)
 
