@@ -12,6 +12,27 @@ import (
 	"github.com/alexedwards/scs/v2"
 )
 
+type scsRequestSession struct {
+	r     *request.Request
+	store *scs.SessionManager
+}
+
+func (s *scsRequestSession) Get(key string) interface{} {
+	return s.store.Get(s.r.Request.Context(), key)
+}
+
+func (s *scsRequestSession) Set(key string, value interface{}) {
+	s.store.Put(s.r.Request.Context(), key, value)
+}
+
+func (s *scsRequestSession) Destroy() error {
+	return s.store.Destroy(s.r.Request.Context())
+}
+
+func (s *scsRequestSession) Exists(key string) bool {
+	return s.store.Exists(s.r.Request.Context(), key)
+}
+
 // Customized version of scs's Middleware function
 // This is due to the fact that the original Middleware function
 // does not support the router.Handler interface
@@ -23,7 +44,6 @@ func SessionMiddleware(store *scs.SessionManager) func(next router.Handler) rout
 			if err == nil {
 				token = cookie.Value
 			}
-
 			ctx, err := store.Load(r.Request.Context(), token)
 			if err != nil {
 				store.ErrorFunc(r.Response, r.Request, err)
@@ -39,6 +59,8 @@ func SessionMiddleware(store *scs.SessionManager) func(next router.Handler) rout
 			r.Response = bw
 			// Set the new request with the context
 			r.Request = sr
+
+			r.Session = &scsRequestSession{r: r, store: store}
 
 			next.ServeHTTP(r)
 

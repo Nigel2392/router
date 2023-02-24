@@ -20,6 +20,15 @@ type RequestConstraint interface {
 	*Request | *http.Request
 }
 
+// This interface will be set on the request, but is only useful if any middleware
+// is using it. If no middleware has set it, it will remain unused.
+type Session interface {
+	Set(key string, value interface{})
+	Get(key string) interface{}
+	Exists(key string) bool
+	Destroy() error
+}
+
 func GetHost[T RequestConstraint](r T) string {
 	var host string
 	switch r := any(r).(type) {
@@ -39,6 +48,7 @@ type Request struct {
 	Response  http.ResponseWriter
 	Request   *http.Request
 	Data      *TemplateData
+	Session   Session
 	URLParams URLParams
 	form      url.Values
 	User      User
