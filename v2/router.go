@@ -2,6 +2,7 @@ package router
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -80,6 +81,10 @@ type Config struct {
 	Server *http.Server
 	// The handler to use when a route is not found
 	NotFoundHandler Handler
+
+	// SSL options
+	CertFile string
+	KeyFile  string
 }
 
 // Router is the main router struct
@@ -155,10 +160,14 @@ func (r *Router) Listen() error {
 	return server.ListenAndServe()
 }
 
-func (r *Router) ListenTLS(certFile, keyFile string) error {
+func (r *Router) ListenTLS() error {
 	var server = r.server()
+	if r.conf.CertFile == "" || r.conf.KeyFile == "" {
+		//lint:ignore ST1005 Error strings should not be capitalized
+		return errors.New("No certificate or key file specified")
+	}
 	fmt.Printf("\u001B[34m"+"Starting server on: https://%s (TLS)"+"\u001B[0m\n", niceAddr(server.Addr))
-	return server.ListenAndServeTLS(certFile, keyFile)
+	return server.ListenAndServeTLS(r.conf.CertFile, r.conf.KeyFile)
 }
 
 // HandleFunc registers a new route with the given path and method.
