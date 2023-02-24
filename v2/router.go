@@ -79,7 +79,8 @@ type Config struct {
 	// Wether to skip trailing slashes
 	SkipTrailingSlash bool
 	// The server to use
-	Server          *http.Server
+	Server *http.Server
+	// The handler to use when a route is not found
 	NotFoundHandler Handler
 }
 
