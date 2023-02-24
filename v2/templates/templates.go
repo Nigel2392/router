@@ -105,14 +105,6 @@ func NicePath(forceSuffixSlash bool, p ...string) string {
 	return b.String()
 }
 
-func NameFromPath(p string) string {
-	var name = FilenameFromPath(p)
-	if strings.Contains(name, ".") {
-		name = strings.Split(name, ".")[0]
-	}
-	return name
-}
-
 func FilenameFromPath(p string) string {
 	p = strings.Replace(p, "\\", "/", -1)
 	name := strings.Split(p, "/")[len(strings.Split(p, "/"))-1]

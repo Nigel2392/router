@@ -204,3 +204,25 @@ func (r *Request) Redirect(redirectURL string, statuscode int, next ...string) {
 	// Redirect.
 	http.Redirect(r.Response, r.Request, redirectURL, statuscode)
 }
+
+// Set cookies.
+func (r *Request) SetCookies(cookies ...*http.Cookie) {
+	for _, cookie := range cookies {
+		http.SetCookie(r.Response, cookie)
+	}
+}
+
+// Get cookies.
+func (r *Request) GetCookie(name string) (*http.Cookie, error) {
+	return r.Request.Cookie(name)
+}
+
+// Delete cookies.
+func (r *Request) DeleteCookie(name string) {
+	http.SetCookie(r.Response, &http.Cookie{
+		Name:    name,
+		Value:   "",
+		Expires: time.Now().Add(-time.Hour),
+		Path:    "/",
+	})
+}
