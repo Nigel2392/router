@@ -35,8 +35,8 @@ func AllowedHosts(allowed_hosts ...string) func(next router.Handler) router.Hand
 				}
 			}
 			if !allowed {
-				if Logger != nil {
-					Logger.Error(formatMessage(r, "Host not allowed: %s", requestHost))
+				if DEFAULT_LOGGER != nil {
+					DEFAULT_LOGGER.Error(formatMessage(r, "Host not allowed: %s", requestHost))
 				}
 				http.Error(r.Response, fmt.Sprintf("Host not allowed: %s", requestHost), http.StatusForbidden)
 				return

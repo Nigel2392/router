@@ -11,8 +11,8 @@ func Recoverer(next router.Handler) router.Handler {
 	return router.HandleFunc(func(r *request.Request) {
 		defer func() {
 			if err := recover(); err != nil {
-				if Logger != nil {
-					Logger.Error(formatMessage(r, "Panic: %s", err))
+				if DEFAULT_LOGGER != nil {
+					DEFAULT_LOGGER.Error(formatMessage(r, "Panic: %s", err))
 				}
 				http.Error(r.Response, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			}

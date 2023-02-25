@@ -111,8 +111,8 @@ rateLimitByIP:
 		}
 		// Split the IP from the port
 		if ip, _, err = net.SplitHostPort(r.Request.RemoteAddr); err != nil {
-			if Logger != nil {
-				Logger.Error(formatMessage(r, "Error getting IP: %s", err.Error()))
+			if DEFAULT_LOGGER != nil {
+				DEFAULT_LOGGER.Error(formatMessage(r, "Error getting IP: %s", err.Error()))
 			}
 			r.Error(http.StatusInternalServerError, "Internal Server Error")
 			return
