@@ -20,48 +20,32 @@ type logger struct {
 	request *request.Request
 }
 
-// Log an error message.
 func (l *logger) Error(format string, args ...any) {
-	fmt.Printf("%s \u001B[4m%s\u001B[0m - [%s \u001B[31;4mError\u001B[0m] %s\n",
-		l.request.Method(),
-		l.request.Request.URL.Path,
-		time.Now().Format("2006-01-02 15:04:05"),
-		fmt.Sprintf(format, args...))
+	logPrint(l.request, "\u001B[31;4mError\u001B[0m", format, args...)
 }
 
-// Log a warning message.
 func (l *logger) Warning(format string, args ...any) {
-	fmt.Printf("%s \u001B[4m%s\u001B[0m - [%s \u001B[33;4mWarning\u001B[0m] %s\n",
-		l.request.Method(),
-		l.request.Request.URL.Path,
-		time.Now().Format("2006-01-02 15:04:05"),
-		fmt.Sprintf(format, args...))
+	logPrint(l.request, "\u001B[33;4mWarning\u001B[0m", format, args...)
 }
 
-// Log an info message.
 func (l *logger) Info(format string, args ...any) {
-	fmt.Printf("%s \u001B[4m%s\u001B[0m - [%s \u001B[34;4mInfo\u001B[0m] %s\n",
-		l.request.Method(),
-		l.request.Request.URL.Path,
-		time.Now().Format("2006-01-02 15:04:05"),
-		fmt.Sprintf(format, args...))
+	logPrint(l.request, "\u001B[34;4mInfo\u001B[0m", format, args...)
 }
 
-// Log a debug message.
 func (l *logger) Debug(format string, args ...any) {
-	fmt.Printf("%s \u001B[4m%s\u001B[0m - [%s \u001B[32;1;4mDebug\u001B[0m] %s\n",
-		l.request.Method(),
-		l.request.Request.URL.Path,
-		time.Now().Format("2006-01-02 15:04:05"),
-		fmt.Sprintf(format, args...))
+	logPrint(l.request, "\u001B[32;1;4mDebug\u001B[0m", format, args...)
 }
 
-// Log a test message.
 func (l *logger) Test(format string, args ...any) {
-	fmt.Printf("%s \u001B[4m%s\u001B[0m - [%s \u001B[35;1;4mTest\u001B[0m] %s\n",
-		l.request.Method(),
-		l.request.Request.URL.Path,
+	logPrint(l.request, "\u001B[35;1;4mTest\u001B[0m", format, args...)
+}
+
+func logPrint(r *request.Request, levelMessage, format string, args ...any) {
+	fmt.Printf("[\u001B[90;4m%s\u001B[0m - \u001B[90m%s\u001B[0m %s] \u001B[90m%s\u001B[0m %s\n",
+		r.Method(),
 		time.Now().Format("2006-01-02 15:04:05"),
+		levelMessage,
+		r.Request.URL.Path,
 		fmt.Sprintf(format, args...))
 }
 
