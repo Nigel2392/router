@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Nigel2392/router/v2"
+	"github.com/Nigel2392/router/v2/middleware"
 	"github.com/Nigel2392/router/v2/request"
 	"github.com/alexedwards/scs/v2"
 )
@@ -50,6 +51,9 @@ func SessionMiddleware(store *scs.SessionManager) func(next router.Handler) rout
 			}
 			ctx, err := store.Load(r.Request.Context(), token)
 			if err != nil {
+				if middleware.Logger != nil {
+					middleware.Logger.Error("[%s] Error loading session: %v", r.IP().String(), err)
+				}
 				store.ErrorFunc(r.Response, r.Request, err)
 				return
 			}
@@ -76,6 +80,9 @@ func SessionMiddleware(store *scs.SessionManager) func(next router.Handler) rout
 			case scs.Modified:
 				token, expiry, err := store.Commit(ctx)
 				if err != nil {
+					if middleware.Logger != nil {
+						middleware.Logger.Error("[%s] Error committing session: %v", r.IP().String(), err)
+					}
 					store.ErrorFunc(oldWriter, r.Request, err)
 					return
 				}

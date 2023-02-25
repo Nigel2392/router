@@ -41,6 +41,7 @@ type RateLimitOptions struct {
 	BurstMultiplier   int
 	CleanExpiry       time.Duration
 	CleanInt          time.Duration
+	LimitHandler      func(r *request.Request)
 }
 
 // Rate returns the rate limit.
@@ -63,6 +64,7 @@ func RateLimiterMiddleware(conf *RateLimitOptions) func(next router.Handler) rou
 	// Start goroutine to go through and clean up old visitors
 	go cleanupVisitors(conf.CleanInt, conf.CleanExpiry)
 
+	// Return the middleware function
 	switch conf.Type {
 	case RateLimitIP, RateLimitIP_Proxy:
 		goto rateLimitByIP
@@ -72,26 +74,34 @@ func RateLimiterMiddleware(conf *RateLimitOptions) func(next router.Handler) rou
 		goto rateLimitByIP
 	}
 
+	// Rate limit by cookie
 rateLimitByCookie:
 	return middlewareFunc(func(next router.Handler, r *request.Request) {
+		// Get the cookie from the request
 		var cookie, err = r.Request.Cookie(conf.CookieName)
 		if err != nil {
+			// Create a new cookie if it doesn't exist
 			cookie = &http.Cookie{
-				Name:     conf.CookieName,
+				Name: conf.CookieName,
+				// Generate a unique ID for the cookie
 				Value:    generateUniqueID(),
 				HttpOnly: true,
+				Path:     "/",
 			}
 		}
 		cookie.Expires = time.Now().Add(conf.CleanExpiry)
 		r.SetCookies(cookie)
-		makeChoice(cookie.Value, conf.rate(), conf.burst(), next, r)
+		makeChoice(cookie.Value, conf, next, r)
 	})
 
+	// Rate limit by IP
 rateLimitByIP:
 	// Return the middleware function
 	return middlewareFunc(func(next router.Handler, r *request.Request) {
+		// Get the IP from the request
 		var ip string
 		var err error
+		// If we are rate limiting behind a proxy, get the IP from the headers
 		if conf.Type == RateLimitIP_Proxy {
 			if ip = r.Request.Header.Get("X-Forwarded-For"); ip != "" {
 				r.Request.RemoteAddr = ip
@@ -99,12 +109,16 @@ rateLimitByIP:
 				r.Request.RemoteAddr = ip
 			}
 		}
-		ip, _, err = net.SplitHostPort(r.Request.RemoteAddr)
-		if err != nil {
+		// Split the IP from the port
+		if ip, _, err = net.SplitHostPort(r.Request.RemoteAddr); err != nil {
+			if Logger != nil {
+				Logger.Error(formatMessage(r, "Error getting IP: %s", err.Error()))
+			}
 			r.Error(http.StatusInternalServerError, "Internal Server Error")
 			return
 		}
-		makeChoice(ip, conf.rate(), conf.burst(), next, r)
+		// Choose to allow or disallow the request
+		makeChoice(ip, conf, next, r)
 	})
 }
 
@@ -149,9 +163,13 @@ func cleanupVisitors(clean_interval, clean_expiry time.Duration) {
 }
 
 // Make a choice, either allow the request or return a 429.
-func makeChoice(id string, rate rate.Limit, burst int, next router.Handler, r *request.Request) {
-	limiter := getVisitor(id, rate, burst)
+func makeChoice(id string, conf *RateLimitOptions, next router.Handler, r *request.Request) {
+	limiter := getVisitor(id, conf.rate(), conf.burst())
 	if !limiter.Allow() {
+		if conf.LimitHandler != nil {
+			conf.LimitHandler(r)
+			return
+		}
 		r.Error(http.StatusTooManyRequests, "Too Many Requests")
 		return
 	}

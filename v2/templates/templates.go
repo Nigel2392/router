@@ -7,35 +7,56 @@ import (
 	"strings"
 )
 
-var (
+// Default manager the request package uses.
+// If you wish to render templates with this package, you must set this variable.
+var DefaultManager *Manager
+
+// Template manager
+// Used for easily fetching templates.
+type Manager struct {
+	// Use template cache?
+	USE_TEMPLATE_CACHE bool
+	// Template cache to use, if enabled
+	tCache *tCache
 	// Default base template suffixes
-	BASE_TEMPLATE_SUFFIXES = []string{".tmpl", ".html"}
+	BASE_TEMPLATE_SUFFIXES []string
 	// Default directory to look in for base templates
-	BASE_TEMPLATE_DIRS = []string{"base"}
-	TEMPLATE_DIRS      = []string{"templates"}
+	BASE_TEMPLATE_DIRS []string
+	TEMPLATE_DIRS      []string
 	// Functions to add to templates
-	DEFAULT_FUNCS = make(template.FuncMap)
+	DEFAULT_FUNCS template.FuncMap
 	// Template file system
 	TEMPLATEFS fs.FS
-)
+}
 
-var USE_TEMPLATE_CACHE = true
+func (tm *Manager) cache() *tCache {
+	if tm.tCache == nil {
+		tm.tCache = newCache()
+	}
+	return tm.tCache
+}
 
-func GetTemplate(templateName string) (*template.Template, string, error) {
+// Initialize the template manager
+func (tm *Manager) Init() {
+	tm.tCache = newCache()
+}
+
+// Get a template
+func (tm *Manager) Get(templateName string) (*template.Template, string, error) {
 	// Check if template is cached
 	var t *template.Template
 	var ok bool
-	if t, ok = templateCache.Get(templateName); !ok || !USE_TEMPLATE_CACHE {
+	if t, ok = tm.cache().Get(templateName); !ok || !tm.USE_TEMPLATE_CACHE {
 		// If not, cache it
-		var base_template_dirs = BASE_TEMPLATE_DIRS
-		var directories = TEMPLATE_DIRS
-		var extensions = BASE_TEMPLATE_SUFFIXES
+		var base_template_dirs = tm.BASE_TEMPLATE_DIRS
+		var directories = tm.TEMPLATE_DIRS
+		var extensions = tm.BASE_TEMPLATE_SUFFIXES
 
 		// Search fs for all base templates, in every base directory
 		var base_templates = make([]string, 0)
 		for _, base_template_dir := range base_template_dirs {
 			// Read all files in base template directory
-			files, err := fs.ReadDir(TEMPLATEFS, base_template_dir)
+			files, err := fs.ReadDir(tm.TEMPLATEFS, base_template_dir)
 			if err != nil {
 				return nil, "", errors.New("Error reading base template directory: " + base_template_dir + " (" + err.Error() + ")")
 			}
@@ -56,7 +77,7 @@ func GetTemplate(templateName string) (*template.Template, string, error) {
 			for _, directory := range directories {
 				// Check if file exists
 				var dirName = NicePath(false, directory, templateName)
-				var _, err = fs.Stat(TEMPLATEFS, dirName)
+				var _, err = fs.Stat(tm.TEMPLATEFS, dirName)
 				if err == nil {
 					template_name = dirName
 					break
@@ -68,12 +89,12 @@ func GetTemplate(templateName string) (*template.Template, string, error) {
 		}
 		var err error
 		var t = template.New(template_name)
-		t.Funcs(DEFAULT_FUNCS)
-		t, err = t.ParseFS(TEMPLATEFS, append(base_templates, template_name)...)
+		t.Funcs(tm.DEFAULT_FUNCS)
+		t, err = t.ParseFS(tm.TEMPLATEFS, append(base_templates, template_name)...)
 		if err != nil {
 			return nil, "", errors.New("Error parsing template: " + template_name + " (" + err.Error() + ")")
 		}
-		templateCache.Set(templateName, t)
+		tm.cache().Set(templateName, t)
 
 		// Render template
 		return t, FilenameFromPath(template_name), nil

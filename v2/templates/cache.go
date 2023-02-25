@@ -10,6 +10,10 @@ type tCache struct {
 	mu        sync.RWMutex
 }
 
+func newCache() *tCache {
+	return &tCache{templates: make(map[string]*template.Template)}
+}
+
 func (tc *tCache) Get(key string) (*template.Template, bool) {
 	tc.mu.RLock()
 	defer tc.mu.RUnlock()
@@ -22,5 +26,3 @@ func (tc *tCache) Set(key string, value *template.Template) {
 	defer tc.mu.Unlock()
 	tc.templates[key] = value
 }
-
-var templateCache = &tCache{templates: make(map[string]*template.Template)}

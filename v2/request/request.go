@@ -2,6 +2,7 @@ package request
 
 import (
 	"bytes"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
@@ -11,28 +12,9 @@ import (
 const MESSAGE_COOKIE_NAME = "messages"
 const NEXT_COOKIE_NAME = "next"
 
-// Default request user interface.
-// This interface is used to check if a user is authenticated.
-// This interface is used by the LoginRequiredMiddleware and LogoutRequiredMiddleware.
-// If you want to use these middlewares, you should implement this interface.
-// And set the GetRequestUserFunc function to return a user.
-type User interface {
-	IsAuthenticated() bool
-}
-
-// This interface is used to retrieve the request host.
+// This constraint is used to retrieve the request host.
 type RequestConstraint interface {
 	*Request | *http.Request
-}
-
-// This interface will be set on the request, but is only useful if any middleware
-// is using it. If no middleware has set it, it will remain unused.
-type Session interface {
-	Set(key string, value interface{})
-	Get(key string) interface{}
-	Exists(key string) bool
-	Delete(key string)
-	Destroy() error
 }
 
 func GetHost[T RequestConstraint](r T) string {
@@ -51,15 +33,34 @@ func GetHost[T RequestConstraint](r T) string {
 
 // Default request to be passed around the router.
 type Request struct {
-	Response  http.ResponseWriter
-	Request   *http.Request
-	Data      *TemplateData
-	Session   Session
+	// Underlying http response writer.
+	Response http.ResponseWriter
+
+	// Underlying http request.
+	Request *http.Request
+
+	// Default data to be passed to any possible templates.
+	Data *TemplateData
+
+	// URL Parameters set inside of the router.
 	URLParams URLParams
-	form      url.Values
-	User      User
-	JSON      *_json
-	next      string
+
+	// The request form, which is filled when you call r.Form().
+	form url.Values
+
+	// The request JSON object, which handles returning json responses.
+	// This is mostly for semantic reasons.
+	JSON *_json
+
+	// The next url to redirect to.
+	next string
+
+	// Interfaces which can be set using the right middlewares.
+	// These interfaces are not set by default, but can be set by middleware.
+
+	User    User
+	Session Session
+	Logger  Logger
 }
 
 // Initialize a new request.
@@ -203,6 +204,17 @@ func (r *Request) Redirect(redirectURL string, statuscode int, next ...string) {
 
 	// Redirect.
 	http.Redirect(r.Response, r.Request, redirectURL, statuscode)
+}
+
+// IP address of the request.
+func (r *Request) IP() net.IP {
+	if ip := r.Request.Header.Get("X-Forwarded-For"); ip != "" {
+		return net.ParseIP(ip)
+	} else if ip := r.Request.Header.Get("X-Real-IP"); ip != "" {
+		return net.ParseIP(ip)
+	} else {
+		return net.ParseIP(r.Request.RemoteAddr)
+	}
 }
 
 // Set cookies.

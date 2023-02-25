@@ -13,7 +13,10 @@ var DEFAULT_DATA_FUNC func(r *Request)
 // Template configuration must be set before calling this function!
 // See the templates package for more information.
 func (r *Request) Render(templateName string) error {
-	var t, name, err = templates.GetTemplate(templateName)
+	if templates.DefaultManager == nil {
+		panic("Template manager is nil, please set the template manager before calling Render()")
+	}
+	var t, name, err = templates.DefaultManager.Get(templateName)
 	if err != nil {
 		return err
 	}
@@ -47,6 +50,7 @@ func (r *Request) Render(templateName string) error {
 	if DEFAULT_DATA_FUNC != nil {
 		DEFAULT_DATA_FUNC(r)
 	}
+
 	// Render template
 	return t.ExecuteTemplate(r.Response, name, r.Data)
 }
