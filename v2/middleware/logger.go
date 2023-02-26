@@ -102,7 +102,7 @@ func logPrintln(r *request.Request, levelMessage string, args ...any) {
 
 // Format a message and return it.
 func logFormat(r *request.Request, levelMessage, additional string) string {
-	return fmt.Sprintf("[\u001B[90;4m%s\u001B[0m - \u001B[90m%s\u001B[0m %s] \u001B[90m%s\u001B[0m %s",
+	return fmt.Sprintf("[ \u001B[90;4m%s\u001B[0m - \u001B[90m%s\u001B[0m %s ] \u001B[90m%s\u001B[0m %s",
 		r.Method(),
 		time.Now().Format("2006-01-02 15:04:05"),
 		levelMessage,
