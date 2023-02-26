@@ -20,56 +20,71 @@ type logger struct {
 }
 
 // Error logs an error message.
-func (l *logger) Error(format any, args ...any) {
-	logPrint(l.request, "\u001B[31;4mERROR\u001B[0m  ", format, args...)
+func (l *logger) Error(args ...any) {
+	logFormat(l.request, "\u001B[31;4mERROR\u001B[0m  ", fmt.Sprint(args...))
 }
 
 // Warning logs a warning message.
-func (l *logger) Warning(format any, args ...any) {
-	logPrint(l.request, "\u001B[33;4mWARNING\u001B[0m", format, args...)
+func (l *logger) Warning(args ...any) {
+	logFormat(l.request, "\u001B[33;4mWARNING\u001B[0m", fmt.Sprint(args...))
 }
 
 // Info logs an info message.
-func (l *logger) Info(format any, args ...any) {
-	logPrint(l.request, "\u001B[34;4mINFO\u001B[0m   ", format, args...)
+func (l *logger) Info(args ...any) {
+	logFormat(l.request, "\u001B[34;4mINFO\u001B[0m   ", fmt.Sprint(args...))
 }
 
 // Debug logs a debug message.
-func (l *logger) Debug(format any, args ...any) {
-	logPrint(l.request, "\u001B[32;1;4mDEBUG\u001B[0m  ", format, args...)
+func (l *logger) Debug(args ...any) {
+	logFormat(l.request, "\u001B[32;1;4mDEBUG\u001B[0m  ", fmt.Sprint(args...))
 }
 
 // Test logs a test message.
-func (l *logger) Test(format any, args ...any) {
-	logPrint(l.request, "\u001B[35;1;4mTEST\u001B[0m ", format, args...)
+func (l *logger) Test(args ...any) {
+	logFormat(l.request, "\u001B[35;1;4mTEST\u001B[0m ", fmt.Sprint(args...))
+}
+
+// Error logs an error message.
+func (l *logger) Errorf(format string, args ...any) {
+	logPrintf(l.request, "\u001B[31;4mERROR\u001B[0m  ", format, args...)
+}
+
+// Warning logs a warning message.
+func (l *logger) Warningf(format string, args ...any) {
+	logPrintf(l.request, "\u001B[33;4mWARNING\u001B[0m", format, args...)
+}
+
+// Info logs an info message.
+func (l *logger) Infof(format string, args ...any) {
+	logPrintf(l.request, "\u001B[34;4mINFO\u001B[0m   ", format, args...)
+}
+
+// Debug logs a debug message.
+func (l *logger) Debugf(format string, args ...any) {
+	logPrintf(l.request, "\u001B[32;1;4mDEBUG\u001B[0m  ", format, args...)
+}
+
+// Test logs a test message.
+func (l *logger) Testf(format string, args ...any) {
+	logPrintf(l.request, "\u001B[35;1;4mTEST\u001B[0m ", format, args...)
 }
 
 // Write a message to the console.
 func (l *logger) Write(p []byte) (n int, err error) {
-	fmt.Print(logFormat(l.request, "\u001B[90;4mWRITE\u001B[0m  ", "%s", string(p)))
+	fmt.Print(logFormat(l.request, "\u001B[90;4mWRITE\u001B[0m  ", string(p)))
 	return len(p), nil
 }
 
 // Format a message and print it to the console.
-func logPrint(r *request.Request, levelMessage, format any, args ...any) {
-	fmt.Println(logFormat(r, levelMessage, format, args...))
+func logPrintf(r *request.Request, levelMessage, format string, args ...any) {
+	fmt.Println(logFormat(r, levelMessage, fmt.Sprintf(format, args...)))
 }
 
-func logFormat(r *request.Request, levelMessage, format any, args ...any) string {
-	var formatLine any
-	if fm, ok := format.(string); ok && len(args) > 0 {
-		formatLine = fmt.Sprintf(fm, args...)
-	} else if len(args) > 0 {
-		formatLine = fmt.Sprint(append([]any{format}, args...)...)
-	} else if ok {
-		formatLine = fm
-	} else {
-		formatLine = format
-	}
-	return fmt.Sprintf("[\u001B[90;4m%s\u001B[0m - \u001B[90m%s\u001B[0m %s] \u001B[90m%s\u001B[0m %v",
+func logFormat(r *request.Request, levelMessage, format string) string {
+	return fmt.Sprintf("[\u001B[90;4m%s\u001B[0m - \u001B[90m%s\u001B[0m %s] \u001B[90m%s\u001B[0m %s",
 		r.Method(),
 		time.Now().Format("2006-01-02 15:04:05"),
 		levelMessage,
 		r.Request.URL.Path,
-		formatLine)
+		format)
 }
