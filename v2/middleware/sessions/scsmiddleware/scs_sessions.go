@@ -38,6 +38,10 @@ func (s *scsRequestSession) Delete(key string) {
 	s.store.Remove(s.r.Request.Context(), key)
 }
 
+func (s *scsRequestSession) RenewToken() error {
+	return s.store.RenewToken(s.r.Request.Context())
+}
+
 // Customized version of scs's Middleware function
 // This is due to the fact that the original Middleware function
 // does not support the router.Handler interface

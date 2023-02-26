@@ -17,6 +17,7 @@ type Session interface {
 	Exists(key string) bool
 	Delete(key string)
 	Destroy() error
+	RenewToken() error
 }
 
 // Default logger interface, can be used to set a logger on the request.
