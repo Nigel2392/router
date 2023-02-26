@@ -52,7 +52,7 @@ func SessionMiddleware(store *scs.SessionManager) func(next router.Handler) rout
 			ctx, err := store.Load(r.Request.Context(), token)
 			if err != nil {
 				if middleware.DEFAULT_LOGGER != nil {
-					middleware.DEFAULT_LOGGER.Error("[%s] Error loading session: %v", r.IP().String(), err)
+					middleware.DEFAULT_LOGGER.Error(middleware.FormatMessage(r, "ERROR", "[%s] Error loading session: %v", r.IP().String(), err))
 				}
 				store.ErrorFunc(r.Response, r.Request, err)
 				return
@@ -81,7 +81,7 @@ func SessionMiddleware(store *scs.SessionManager) func(next router.Handler) rout
 				token, expiry, err := store.Commit(ctx)
 				if err != nil {
 					if middleware.DEFAULT_LOGGER != nil {
-						middleware.DEFAULT_LOGGER.Error("[%s] Error committing session: %v", r.IP().String(), err)
+						middleware.DEFAULT_LOGGER.Error(middleware.FormatMessage(r, "ERROR", "[%s] Error committing session: %v", r.IP().String(), err))
 					}
 					store.ErrorFunc(oldWriter, r.Request, err)
 					return
