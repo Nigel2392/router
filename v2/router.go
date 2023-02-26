@@ -172,7 +172,7 @@ func (r *Router) ListenTLS() error {
 
 // HandleFunc registers a new route with the given path and method.
 func (r *Router) HandleFunc(method, path string, handler HandleFunc, name ...string) Registrar {
-	var route = &Route{Method: method, Path: routevars.URLFormatter(path), HandlerFunc: handler, middlewareEnabled: true, middleware: r.middleware}
+	var route = &Route{Method: method, Path: routevars.URLFormatter(path), HandlerFunc: handler, middlewareEnabled: true}
 
 	if len(name) > 0 {
 		route.name = name[0]
@@ -236,7 +236,6 @@ func (r *Router) Use(middlewares ...Middleware) {
 func (r *Router) Group(path string, name string, middlewares ...Middleware) Registrar {
 	var route = &Route{Path: routevars.URLFormatter(path), middlewareEnabled: true, name: name}
 	r.routes = append(r.routes, route)
-	route.middleware = append(r.middleware, middlewares...)
 	return route
 }
 

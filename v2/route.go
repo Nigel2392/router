@@ -123,6 +123,10 @@ func (r *Route) Any(path string, handler HandleFunc, name ...string) Registrar {
 
 // Group creates a new group of routes
 func (r *Route) Group(path string, name string, middlewares ...Middleware) Registrar {
+	if len(middlewares) == 0 {
+		middlewares = make([]Middleware, 0)
+	}
+	middlewares = append(middlewares, r.middleware...)
 	var route = &Route{
 		Path:              r.Path + routevars.URLFormatter(path),
 		middleware:        middlewares,
