@@ -10,13 +10,15 @@ import (
 
 var DEFAULT_DATA_FUNC func(r *Request)
 
+var TEMPLATE_MANAGER *templates.Manager
+
 // Template configuration must be set before calling this function!
 // See the templates package for more information.
 func (r *Request) Render(templateName string) error {
-	if templates.DefaultManager == nil {
+	if TEMPLATE_MANAGER == nil {
 		panic("Template manager is nil, please set the template manager before calling Render()")
 	}
-	var t, name, err = templates.DefaultManager.Get(templateName)
+	var t, name, err = TEMPLATE_MANAGER.Get(templateName)
 	if err != nil {
 		return err
 	}

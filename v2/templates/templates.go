@@ -7,10 +7,6 @@ import (
 	"strings"
 )
 
-// Default manager the request package uses.
-// If you wish to render templates with this package, you must set this variable.
-var DefaultManager *Manager = &Manager{}
-
 // Template manager
 // Used for easily fetching templates.
 type Manager struct {
