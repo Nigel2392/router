@@ -91,7 +91,7 @@ func SessionMiddleware(store *scs.SessionManager) func(next router.Handler) rout
 				store.WriteSessionCookie(ctx, oldWriter, "", time.Time{})
 			}
 
-			oldWriter.Header().Add("Vary", "Cookie")
+			request.AddHeader(r.Response, "Vary", "Cookie")
 
 			if bw.Code != 0 {
 				oldWriter.WriteHeader(bw.Code)

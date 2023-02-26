@@ -238,3 +238,31 @@ func (r *Request) DeleteCookie(name string) {
 		Path:    "/",
 	})
 }
+
+// Get a header.
+func (r *Request) GetHeader(name string) string {
+	return r.Request.Header.Get(name)
+}
+
+// Set a header.
+func (r *Request) SetHeader(name, value string) {
+	r.Response.Header().Set(name, value)
+}
+
+// Add a header.
+func (r *Request) AddHeader(name, value string) {
+	AddHeader(r.Response, name, value)
+}
+
+// AddHeader
+func AddHeader(w http.ResponseWriter, name, value string) {
+	// Get the current value.
+	current := w.Header().Get(name)
+	// If the current value is empty, set the value.
+	if current == "" {
+		w.Header().Set(name, value)
+		return
+	}
+	// If the current value is not empty, append the value.
+	w.Header().Add(name, value)
+}

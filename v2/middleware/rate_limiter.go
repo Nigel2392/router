@@ -103,9 +103,9 @@ rateLimitByIP:
 		var err error
 		// If we are rate limiting behind a proxy, get the IP from the headers
 		if conf.Type == RateLimitIP_Proxy {
-			if ip = r.Request.Header.Get("X-Forwarded-For"); ip != "" {
+			if ip = r.GetHeader("X-Forwarded-For"); ip != "" {
 				r.Request.RemoteAddr = ip
-			} else if ip = r.Request.Header.Get("X-Real-IP"); ip != "" {
+			} else if ip = r.GetHeader("X-Real-IP"); ip != "" {
 				r.Request.RemoteAddr = ip
 			}
 		}

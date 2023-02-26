@@ -26,7 +26,7 @@ func AllowContentType(contentTypes ...string) func(next router.Handler) router.H
 				return
 			}
 
-			var cTyp = r.Request.Header.Get("Content-Type")
+			var cTyp = r.GetHeader("Content-Type")
 			var s = strings.ToLower(strings.TrimSpace(cTyp))
 			if i := strings.Index(s, ";"); i > -1 {
 				s = s[0:i]

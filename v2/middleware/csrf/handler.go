@@ -24,7 +24,7 @@ func Middleware(next router.Handler) router.Handler {
 
 		defaultContext(req)
 
-		req.Response.Header().Add("Vary", "Cookie")
+		req.AddHeader("Vary", "Cookie")
 
 		var realToken []byte
 		tokenCookie, err := req.GetCookie(CSRF_TOKEN_COOKIE_NAME)
@@ -55,7 +55,7 @@ func Middleware(next router.Handler) router.Handler {
 		}
 
 		if req.Request.URL.Scheme == "https" {
-			referer, err := url.Parse(req.Request.Header.Get("Referer"))
+			referer, err := url.Parse(req.GetHeader("Referer"))
 
 			// if we can't parse the referer or it's empty,
 			// we assume it's not specified
