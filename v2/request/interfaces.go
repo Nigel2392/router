@@ -23,13 +23,13 @@ type Session interface {
 // This logger can be set in for example, the middleware, and then be used in the views by the request.
 type Logger interface {
 	// Write an error message, loglevel error
-	Error(msg string, args ...any)
+	Error(format any, args ...any)
 	// Write a warning message, loglevel warning
-	Warning(msg string, args ...any)
+	Warning(format any, args ...any)
 	// Write an info message, loglevel info
-	Info(msg string, args ...any)
+	Info(format any, args ...any)
 	// Write a debug message, loglevel debug
-	Debug(msg string, args ...any)
+	Debug(format any, args ...any)
 	// Write a test message, loglevel test
-	Test(msg string, args ...any)
+	Test(format any, args ...any)
 }
