@@ -23,9 +23,7 @@ func Printer(next router.Handler) router.Handler {
 
 func printerFunc(next router.Handler, r *request.Request, out io.Writer) {
 	start := time.Now()
-	method := r.Method()
-	path := r.Request.URL.Path
 	next.ServeHTTP(r)
 
-	fmt.Fprintf(out, "%s [%s] %s %s\n", start.Format("2006 Jan 02 15:04:05"), method, time.Since(start), path)
+	fmt.Fprintf(out, "%s %s\n", r.IP().String(), time.Since(start))
 }
