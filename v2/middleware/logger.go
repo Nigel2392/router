@@ -56,10 +56,16 @@ func logPrint(r *request.Request, levelMessage, format string, args ...any) {
 }
 
 func logFormat(r *request.Request, levelMessage, format string, args ...any) string {
+	var formatLine string
+	if len(args) > 0 {
+		formatLine = fmt.Sprintf(format, args...)
+	} else {
+		formatLine = format
+	}
 	return fmt.Sprintf("[\u001B[90;4m%s\u001B[0m - \u001B[90m%s\u001B[0m %s] \u001B[90m%s\u001B[0m %s",
 		r.Method(),
 		time.Now().Format("2006-01-02 15:04:05"),
 		levelMessage,
 		r.Request.URL.Path,
-		fmt.Sprintf(format, args...))
+		formatLine)
 }
