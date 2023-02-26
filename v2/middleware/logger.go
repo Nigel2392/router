@@ -21,7 +21,7 @@ type logger struct {
 
 // Error logs an error message.
 func (l *logger) Error(format string, args ...any) {
-	logPrint(l.request, "\u001B[31;4mERROR\u001B[0m", format, args...)
+	logPrint(l.request, "\u001B[31;4mERROR\u001B[0m  ", format, args...)
 }
 
 // Warning logs a warning message.
@@ -31,17 +31,23 @@ func (l *logger) Warning(format string, args ...any) {
 
 // Info logs an info message.
 func (l *logger) Info(format string, args ...any) {
-	logPrint(l.request, "\u001B[34;4mINFO\u001B[0m", format, args...)
+	logPrint(l.request, "\u001B[34;4mINFO\u001B[0m   ", format, args...)
 }
 
 // Debug logs a debug message.
 func (l *logger) Debug(format string, args ...any) {
-	logPrint(l.request, "\u001B[32;1;4mDEBUG\u001B[0m", format, args...)
+	logPrint(l.request, "\u001B[32;1;4mDEBUG\u001B[0m  ", format, args...)
 }
 
 // Test logs a test message.
 func (l *logger) Test(format string, args ...any) {
-	logPrint(l.request, "\u001B[35;1;4mTEST\u001B[0m", format, args...)
+	logPrint(l.request, "\u001B[35;1;4mTEST\u001B[0m ", format, args...)
+}
+
+// Write a message to the console.
+func (l *logger) Write(p []byte) (n int, err error) {
+	fmt.Println(logFormat(l.request, "\u001B[90;4mWRITE\u001B[0m  ", "%s", string(p)))
+	return len(p), nil
 }
 
 // Format a message and print it to the console.
