@@ -254,7 +254,9 @@ func (r *Request) AddHeader(name, value string) {
 	AddHeader(r.Response, name, value)
 }
 
-// AddHeader
+// Add a header onto the request.
+// This will append the value to the current value.
+// If the value already exists, it will not be added.
 func AddHeader(w http.ResponseWriter, name, value string) {
 	// Get the current value.
 	current := w.Header().Get(name)
@@ -263,6 +265,10 @@ func AddHeader(w http.ResponseWriter, name, value string) {
 		w.Header().Set(name, value)
 		return
 	}
+	// If the value already exists, do nothing.
+	if strings.Contains(current, value) {
+		return
+	}
 	// If the current value is not empty, append the value.
-	w.Header().Add(name, value)
+	w.Header().Set(name, current+"; "+value)
 }
