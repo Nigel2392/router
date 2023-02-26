@@ -207,13 +207,22 @@ func (r *Request) Redirect(redirectURL string, statuscode int, next ...string) {
 
 // IP address of the request.
 func (r *Request) IP() string {
-	if ip := r.Request.Header.Get("X-Forwarded-For"); ip != "" {
-		return ip
-	} else if ip := r.Request.Header.Get("X-Real-IP"); ip != "" {
-		return ip
+	var ip string
+	if ip = r.Request.Header.Get("X-Forwarded-For"); ip != "" {
+		goto parse
+	} else if ip = r.Request.Header.Get("X-Real-IP"); ip != "" {
+		goto parse
 	} else {
-		return r.Request.RemoteAddr
+		ip = r.Request.RemoteAddr
+		goto parse
 	}
+
+parse:
+	// Parse the IP address.
+	if i := strings.Index(ip, ":"); i != -1 {
+		ip = ip[:i]
+	}
+	return ip
 }
 
 // Set cookies.
