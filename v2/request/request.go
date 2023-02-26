@@ -2,7 +2,6 @@ package request
 
 import (
 	"bytes"
-	"net"
 	"net/http"
 	"net/url"
 	"strings"
@@ -207,13 +206,13 @@ func (r *Request) Redirect(redirectURL string, statuscode int, next ...string) {
 }
 
 // IP address of the request.
-func (r *Request) IP() net.IP {
+func (r *Request) IP() string {
 	if ip := r.Request.Header.Get("X-Forwarded-For"); ip != "" {
-		return net.ParseIP(ip)
+		return ip
 	} else if ip := r.Request.Header.Get("X-Real-IP"); ip != "" {
-		return net.ParseIP(ip)
+		return ip
 	} else {
-		return net.ParseIP(r.Request.RemoteAddr)
+		return r.Request.RemoteAddr
 	}
 }
 

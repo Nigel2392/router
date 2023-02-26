@@ -25,5 +25,5 @@ func printerFunc(next router.Handler, r *request.Request, out io.Writer) {
 	start := time.Now()
 	next.ServeHTTP(r)
 
-	fmt.Fprintf(out, "%s %s\n", r.IP().String(), time.Since(start))
+	fmt.Fprintf(out, "%s %s\n", r.IP(), time.Since(start))
 }
