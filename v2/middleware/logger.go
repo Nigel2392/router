@@ -46,7 +46,7 @@ func (l *logger) Test(format string, args ...any) {
 
 // Write a message to the console.
 func (l *logger) Write(p []byte) (n int, err error) {
-	fmt.Println(logFormat(l.request, "\u001B[90;4mWRITE\u001B[0m  ", "%s", string(p)))
+	fmt.Print(logFormat(l.request, "\u001B[90;4mWRITE\u001B[0m  ", "%s", string(p)))
 	return len(p), nil
 }
 
