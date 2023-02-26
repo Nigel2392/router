@@ -22,6 +22,10 @@ type Session interface {
 // Default logger interface, can be used to set a logger on the request.
 // This logger can be set in for example, the middleware, and then be used in the views by the request.
 type Logger interface {
+	// Write a critical error message
+	// This message should be handled differently
+	// than the other ways of reporting.
+	Critical(err error)
 	// Write an error message, loglevel error
 	Error(args ...any)
 	Errorf(format string, args ...any)

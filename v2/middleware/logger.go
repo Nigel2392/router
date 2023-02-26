@@ -19,59 +19,74 @@ type logger struct {
 	request *request.Request
 }
 
+var (
+	critMsg  = "\u001B[31;1;4mCRITICAL\u001B[0m"
+	errMsg   = "\u001B[31;4mERROR\u001B[0m   "
+	warnMsg  = "\u001B[33;4mWARNING\u001B[0m "
+	infoMsg  = "\u001B[34;4mINFO\u001B[0m    "
+	dbugMsg  = "\u001B[32;1;4mDEBUG\u001B[0m   "
+	testMsg  = "\u001B[35;1;4mTEST\u001B[0m    "
+	writeMSG = "\u001B[90;4mWRITE\u001B[0m   "
+)
+
+// Log a critical message.
+func (l *logger) Critical(err error) {
+	logPrintln(l.request, critMsg, err)
+}
+
 // Error logs an error message.
 func (l *logger) Error(args ...any) {
-	logPrintln(l.request, "\u001B[31;4mERROR\u001B[0m  ", args...)
+	logPrintln(l.request, errMsg, args...)
 }
 
 // Warning logs a warning message.
 func (l *logger) Warning(args ...any) {
-	logPrintln(l.request, "\u001B[33;4mWARNING\u001B[0m", args...)
+	logPrintln(l.request, warnMsg, args...)
 }
 
 // Info logs an info message.
 func (l *logger) Info(args ...any) {
-	logPrintln(l.request, "\u001B[34;4mINFO\u001B[0m   ", args...)
+	logPrintln(l.request, infoMsg, args...)
 }
 
 // Debug logs a debug message.
 func (l *logger) Debug(args ...any) {
-	logPrintln(l.request, "\u001B[32;1;4mDEBUG\u001B[0m  ", args...)
+	logPrintln(l.request, dbugMsg, args...)
 }
 
 // Test logs a test message.
 func (l *logger) Test(args ...any) {
-	logPrintln(l.request, "\u001B[35;1;4mTEST\u001B[0m ", args...)
+	logPrintln(l.request, testMsg, args...)
 }
 
 // Error logs an error message.
 func (l *logger) Errorf(format string, args ...any) {
-	logPrintf(l.request, "\u001B[31;4mERROR\u001B[0m  ", format, args...)
+	logPrintf(l.request, errMsg, format, args...)
 }
 
 // Warning logs a warning message.
 func (l *logger) Warningf(format string, args ...any) {
-	logPrintf(l.request, "\u001B[33;4mWARNING\u001B[0m", format, args...)
+	logPrintf(l.request, warnMsg, format, args...)
 }
 
 // Info logs an info message.
 func (l *logger) Infof(format string, args ...any) {
-	logPrintf(l.request, "\u001B[34;4mINFO\u001B[0m   ", format, args...)
+	logPrintf(l.request, infoMsg, format, args...)
 }
 
 // Debug logs a debug message.
 func (l *logger) Debugf(format string, args ...any) {
-	logPrintf(l.request, "\u001B[32;1;4mDEBUG\u001B[0m  ", format, args...)
+	logPrintf(l.request, dbugMsg, format, args...)
 }
 
 // Test logs a test message.
 func (l *logger) Testf(format string, args ...any) {
-	logPrintf(l.request, "\u001B[35;1;4mTEST\u001B[0m ", format, args...)
+	logPrintf(l.request, testMsg, format, args...)
 }
 
 // Write a message to the console.
 func (l *logger) Write(p []byte) (n int, err error) {
-	fmt.Print(logFormat(l.request, "\u001B[90;4mWRITE\u001B[0m  ", string(p)))
+	fmt.Print(logFormat(l.request, writeMSG, string(p)))
 	return len(p), nil
 }
 
