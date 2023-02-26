@@ -21,12 +21,12 @@ type logger struct {
 
 var (
 	critMsg  = "\u001B[31;1;4mCRITICAL\u001B[0m"
-	errMsg   = "\u001B[31;4mERROR\u001B[0m   "
-	warnMsg  = "\u001B[33;4mWARNING\u001B[0m "
-	infoMsg  = "\u001B[34;4mINFO\u001B[0m    "
-	dbugMsg  = "\u001B[32;1;4mDEBUG\u001B[0m   "
-	testMsg  = "\u001B[35;1;4mTEST\u001B[0m    "
-	writeMSG = "\u001B[90;4mWRITE\u001B[0m   "
+	errMsg   = "   \u001B[31;4mERROR\u001B[0m"
+	warnMsg  = " \u001B[33;4mWARNING\u001B[0m"
+	infoMsg  = "    \u001B[34;4mINFO\u001B[0m"
+	dbugMsg  = "   \u001B[32;1;4mDEBUG\u001B[0m"
+	testMsg  = "    \u001B[35;1;4mTEST\u001B[0m"
+	writeMSG = "   \u001B[90;4mWRITE\u001B[0m"
 )
 
 // Log a critical message.
