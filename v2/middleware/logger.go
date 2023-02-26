@@ -21,27 +21,27 @@ type logger struct {
 
 // Error logs an error message.
 func (l *logger) Error(args ...any) {
-	logFormat(l.request, "\u001B[31;4mERROR\u001B[0m  ", fmt.Sprint(args...))
+	logPrintln(l.request, "\u001B[31;4mERROR\u001B[0m  ", args...)
 }
 
 // Warning logs a warning message.
 func (l *logger) Warning(args ...any) {
-	logFormat(l.request, "\u001B[33;4mWARNING\u001B[0m", fmt.Sprint(args...))
+	logPrintln(l.request, "\u001B[33;4mWARNING\u001B[0m", args...)
 }
 
 // Info logs an info message.
 func (l *logger) Info(args ...any) {
-	logFormat(l.request, "\u001B[34;4mINFO\u001B[0m   ", fmt.Sprint(args...))
+	logPrintln(l.request, "\u001B[34;4mINFO\u001B[0m   ", args...)
 }
 
 // Debug logs a debug message.
 func (l *logger) Debug(args ...any) {
-	logFormat(l.request, "\u001B[32;1;4mDEBUG\u001B[0m  ", fmt.Sprint(args...))
+	logPrintln(l.request, "\u001B[32;1;4mDEBUG\u001B[0m  ", args...)
 }
 
 // Test logs a test message.
 func (l *logger) Test(args ...any) {
-	logFormat(l.request, "\u001B[35;1;4mTEST\u001B[0m ", fmt.Sprint(args...))
+	logPrintln(l.request, "\u001B[35;1;4mTEST\u001B[0m ", args...)
 }
 
 // Error logs an error message.
@@ -80,6 +80,12 @@ func logPrintf(r *request.Request, levelMessage, format string, args ...any) {
 	fmt.Println(logFormat(r, levelMessage, fmt.Sprintf(format, args...)))
 }
 
+// Format a message and print it to the console.
+func logPrintln(r *request.Request, levelMessage string, args ...any) {
+	fmt.Println(logFormat(r, levelMessage, fmt.Sprint(args...)))
+}
+
+// Format a message and return it.
 func logFormat(r *request.Request, levelMessage, format string) string {
 	return fmt.Sprintf("[\u001B[90;4m%s\u001B[0m - \u001B[90m%s\u001B[0m %s] \u001B[90m%s\u001B[0m %s",
 		r.Method(),
