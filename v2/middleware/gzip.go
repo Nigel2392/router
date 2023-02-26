@@ -8,6 +8,7 @@ import (
 	"github.com/Nigel2392/router/v2/request"
 )
 
+// GZIP compresses the response using gzip compression.
 func GZIP(next router.Handler) router.Handler {
 	return router.HandleFunc(func(r *request.Request) {
 		r.Response.Header().Set("Content-Encoding", "gzip")

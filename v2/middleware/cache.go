@@ -7,6 +7,8 @@ import (
 	"github.com/Nigel2392/router/v2/request"
 )
 
+// Set the cache headers for the response.
+// This will enable caching for the specified amount of seconds.
 func Cache(maxAge int) func(next router.Handler) router.Handler {
 	return func(next router.Handler) router.Handler {
 		return router.HandleFunc(func(r *request.Request) {
@@ -28,6 +30,8 @@ var etagHeaders = []string{
 	"If-Unmodified-Since",
 }
 
+// Set the cache headers for the response.
+// This will disable caching.
 func NoCache(next router.Handler) router.Handler {
 	return router.HandleFunc(func(r *request.Request) {
 		for _, header := range etagHeaders {

@@ -7,6 +7,8 @@ import (
 	"github.com/Nigel2392/router/v2/request"
 )
 
+// Recoverer recovers from panics and logs the error,
+// if the logger was set.
 func Recoverer(next router.Handler) router.Handler {
 	return router.HandleFunc(func(r *request.Request) {
 		defer func() {

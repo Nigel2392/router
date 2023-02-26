@@ -8,6 +8,9 @@ import (
 	"github.com/Nigel2392/router/v2/request"
 )
 
+// AllowContentType is a middleware that checks the content type of the request
+// body. If the content type is not allowed, the middleware will return a
+// http.StatusUnsupportedMediaType error.
 func AllowContentType(contentTypes ...string) func(next router.Handler) router.Handler {
 	return func(next router.Handler) router.Handler {
 		allowedContentTypes := make(map[string]int8, len(contentTypes))
