@@ -141,6 +141,13 @@ func (r *Router) URL(method, name string) routevars.URLFormatter {
 	return ""
 }
 
+// Basically the URL func, but for easy use in templates.
+// It returns the URL, formatted based on the arguments.
+func (r *Router) URLFormat(name string, args ...interface{}) string {
+	var url = r.URL(ALL, name)
+	return url.Format(args...)
+}
+
 func (r *Router) server() *http.Server {
 	var server *http.Server
 	var addr = fmt.Sprintf("%s:%d", r.conf.Host, r.conf.Port)
