@@ -30,11 +30,11 @@ func generateToken() []byte {
 }
 
 func b64encode(data []byte) string {
-	return base64.StdEncoding.EncodeToString(data)
+	return base64.RawURLEncoding.EncodeToString(data)
 }
 
 func b64decode(data string) []byte {
-	decoded, err := base64.StdEncoding.DecodeString(data)
+	decoded, err := base64.RawURLEncoding.DecodeString(data)
 	if err != nil {
 		return nil
 	}
