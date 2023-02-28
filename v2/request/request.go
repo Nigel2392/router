@@ -6,6 +6,8 @@ import (
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/Nigel2392/routevars"
 )
 
 const MESSAGE_COOKIE_NAME = "messages"
@@ -40,6 +42,7 @@ type Request struct {
 	User    User
 	Session Session
 	Logger  Logger
+	URL     func(method, name string) routevars.URLFormatter
 }
 
 // Initialize a new request.

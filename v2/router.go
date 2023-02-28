@@ -287,8 +287,14 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			}
 		}
 
+		// Initialize a new request.
+		var req = request.NewRequest(w, req, vars)
+
+		// Set up a function to fetch routes, from any path inside a request.
+		req.URL = r.URL
+
 		// Serve the request
-		handler.ServeHTTP(request.NewRequest(w, req, vars))
+		handler.ServeHTTP(req)
 		return
 	}
 
