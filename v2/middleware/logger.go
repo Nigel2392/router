@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/Nigel2392/router/v2"
@@ -102,10 +103,20 @@ func logPrintln(r *request.Request, levelMessage string, args ...any) {
 
 // Format a message and return it.
 func logFormat(r *request.Request, levelMessage, additional string) string {
-	return fmt.Sprintf("[ \u001B[90;4m%s\u001B[0m - \u001B[90m%s\u001B[0m %s ] \u001B[90m%s\u001B[0m %s",
-		r.Method(),
+	return fmt.Sprintf("[ \u001B[90;4m%s - \u001B[90m%s\u001B[0m %s ] \u001B[90m%s\u001B[0m %s",
+		padString(r.Method()+"\u001B[0m", 11),
 		time.Now().Format("2006-01-02 15:04:05"),
 		levelMessage,
 		r.Request.URL.Path,
 		additional)
+}
+
+func padString(s string, length int) string {
+	var b strings.Builder
+	b.Grow(length)
+	b.WriteString(s)
+	for i := len(s); i < length; i++ {
+		b.WriteRune(' ')
+	}
+	return b.String()
 }
