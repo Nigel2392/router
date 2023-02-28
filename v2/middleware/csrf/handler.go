@@ -50,6 +50,11 @@ func Middleware(next router.Handler) router.Handler {
 		// Check if the request method is safe.
 		if !unsafeMethods.Contains(req.Method()) {
 			// Continue to the next handler.
+
+			if req.Data != nil {
+				req.Data.CSRFToken = request.NewCSRFToken(Token(req))
+			}
+
 			next.ServeHTTP(req)
 			return
 		}
