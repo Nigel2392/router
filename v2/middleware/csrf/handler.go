@@ -47,14 +47,15 @@ func Middleware(next router.Handler) router.Handler {
 			contextSaveToken(req, b64encode(maskToken(realToken)))
 		}
 
+		if req.Data == nil {
+			req.Data = request.NewTemplateData()
+		}
+
+		req.Data.CSRFToken = request.NewCSRFToken(Token(req))
+
 		// Check if the request method is safe.
 		if !unsafeMethods.Contains(req.Method()) {
 			// Continue to the next handler.
-
-			if req.Data != nil {
-				req.Data.CSRFToken = request.NewCSRFToken(Token(req))
-			}
-
 			next.ServeHTTP(req)
 			return
 		}
