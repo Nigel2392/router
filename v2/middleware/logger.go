@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"fmt"
+	"runtime"
 	"strings"
 	"time"
 
@@ -32,7 +33,14 @@ var (
 
 // Log a critical message.
 func (l *logger) Critical(err error) {
-	logPrintln(l.request, critMsg, err)
+	_, file, line, _ := runtime.Caller(1)
+	fmt.Printf("[ \u001B[90;4m%s - \u001B[90m%s\u001B[0m %s ] %s on line %d \u001B[90m%s\u001B[0m\n",
+		padString(l.request.Method()+"\u001B[0m", 11),
+		time.Now().Format("2006-01-02 15:04:05"),
+		critMsg,
+		err.Error(),
+		line,
+		file)
 }
 
 // Error logs an error message.
