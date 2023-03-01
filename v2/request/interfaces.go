@@ -6,7 +6,10 @@ package request
 // If you want to use these middlewares, you should implement this interface.
 // And set the GetRequestUserFunc function to return a user.
 type User interface {
+	// Check if the user is authenticated
 	IsAuthenticated() bool
+
+	// Check if the user is an administator
 	IsAdmin() bool
 }
 
