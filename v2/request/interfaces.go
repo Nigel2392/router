@@ -7,6 +7,7 @@ package request
 // And set the GetRequestUserFunc function to return a user.
 type User interface {
 	IsAuthenticated() bool
+	IsAdmin() bool
 }
 
 // This interface will be set on the request, but is only useful if any middleware
