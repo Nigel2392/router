@@ -33,11 +33,15 @@ type TemplateData struct {
 	CSRFToken *CSRFToken
 	User      interface{}
 	Next      string
-	URL       func(string, ...interface{}) string
+	url       func(string, ...interface{}) string
 }
 
 func NewTemplateData() *TemplateData {
 	return &TemplateData{Data: make(map[string]any), Messages: make(Messages, 0)}
+}
+
+func (td *TemplateData) URL(path string, args ...interface{}) string {
+	return td.url(path, args...)
 }
 
 func (td *TemplateData) AddMessage(messageType, message string) {

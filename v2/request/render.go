@@ -56,7 +56,8 @@ func (r *Request) RenderTemplate(t *template.Template, name string) error {
 // Add default data to the request
 func addDefaultData(r *Request) error {
 	r.Data.Next = r.Next()
-	r.Data.URL = func(s string, i ...interface{}) string {
+
+	r.Data.url = func(s string, i ...interface{}) string {
 		return r.URL("ALL", s).Format(i...)
 	}
 
