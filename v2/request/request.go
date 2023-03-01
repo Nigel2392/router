@@ -2,7 +2,6 @@ package request
 
 import (
 	"bytes"
-	"html/template"
 	"net/http"
 	"net/url"
 	"strings"
@@ -44,20 +43,16 @@ type Request struct {
 	Session Session
 	Logger  Logger
 	URL     func(method, name string) routevars.URLFormatter
-
-	// Extra functions for the template.FuncMap
-	ExtraFuncs template.FuncMap
 }
 
 // Initialize a new request.
 func NewRequest(writer http.ResponseWriter, request *http.Request, params URLParams) *Request {
 	var r = &Request{
-		Response:   writer,
-		Request:    request,
-		URLParams:  params,
-		JSON:       &_json{},
-		Data:       NewTemplateData(),
-		ExtraFuncs: make(template.FuncMap),
+		Response:  writer,
+		Request:   request,
+		URLParams: params,
+		JSON:      &_json{},
+		Data:      NewTemplateData(),
 	}
 	r.JSON.r = &r
 	return r
