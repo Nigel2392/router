@@ -2,6 +2,7 @@ package request
 
 import (
 	"bytes"
+	"html/template"
 	"net/http"
 	"net/url"
 	"strings"
@@ -43,6 +44,9 @@ type Request struct {
 	Session Session
 	Logger  Logger
 	URL     func(method, name string) routevars.URLFormatter
+
+	// Extra functions for the template.FuncMap
+	ExtraFuncs template.FuncMap
 }
 
 // Initialize a new request.

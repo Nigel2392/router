@@ -44,6 +44,9 @@ func (r *Request) RenderTemplate(t *template.Template, name string) error {
 	if err != nil {
 		return err
 	}
+
+	t.Funcs(r.ExtraFuncs)
+
 	// Add default data
 	if DEFAULT_DATA_FUNC != nil {
 		DEFAULT_DATA_FUNC(r)
