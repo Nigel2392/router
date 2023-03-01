@@ -33,6 +33,7 @@ type TemplateData struct {
 	CSRFToken *CSRFToken
 	User      interface{}
 	Next      string
+	URL       func(string, ...interface{}) string
 }
 
 func NewTemplateData() *TemplateData {
