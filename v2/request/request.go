@@ -52,11 +52,12 @@ type Request struct {
 // Initialize a new request.
 func NewRequest(writer http.ResponseWriter, request *http.Request, params URLParams) *Request {
 	var r = &Request{
-		Response:  writer,
-		Request:   request,
-		URLParams: params,
-		JSON:      &_json{},
-		Data:      NewTemplateData(),
+		Response:   writer,
+		Request:    request,
+		URLParams:  params,
+		JSON:       &_json{},
+		Data:       NewTemplateData(),
+		ExtraFuncs: make(template.FuncMap),
 	}
 	r.JSON.r = &r
 	return r
