@@ -19,7 +19,7 @@ func (r *Request) Render(templateName string) error {
 	if TEMPLATE_MANAGER == nil {
 		panic("Template manager is nil, please set the template manager before calling Render()")
 	}
-	var t, name, err = TEMPLATE_MANAGER.Get(templateName, r.ExtraFuncs)
+	var t, name, err = TEMPLATE_MANAGER.Get(templateName)
 	if err != nil {
 		return err
 	}
