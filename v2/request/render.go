@@ -2,6 +2,7 @@ package request
 
 import (
 	"fmt"
+	"html/template"
 	"net/http"
 	"time"
 
@@ -23,6 +24,36 @@ func (r *Request) Render(templateName string) error {
 		return err
 	}
 
+	return renderTemplate(t, name, r)
+}
+
+// Render a string as a template
+func (r *Request) RenderString(templateString string) error {
+	var t = template.New("string")
+	t, err := t.Parse(templateString)
+	if err != nil {
+		return err
+	}
+
+	return renderTemplate(t, "string", r)
+}
+
+func renderTemplate(t *template.Template, name string, r *Request) error {
+	var err = addDefaultData(r)
+	if err != nil {
+		return err
+	}
+
+	// Add default data
+	if DEFAULT_DATA_FUNC != nil {
+		DEFAULT_DATA_FUNC(r)
+	}
+
+	// Render template
+	return t.ExecuteTemplate(r.Response, name, r.Data)
+}
+
+func addDefaultData(r *Request) error {
 	r.Data.Next = r.Next()
 
 	// Get the messages from the session
@@ -47,12 +78,5 @@ func (r *Request) Render(templateName string) error {
 			})
 		}
 	}
-
-	// Add default data
-	if DEFAULT_DATA_FUNC != nil {
-		DEFAULT_DATA_FUNC(r)
-	}
-
-	// Render template
-	return t.ExecuteTemplate(r.Response, name, r.Data)
+	return nil
 }

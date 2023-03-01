@@ -103,6 +103,18 @@ func (tm *Manager) Get(templateName string) (*template.Template, string, error) 
 	return t, name, nil
 }
 
+// Render a template from a string
+func (tm *Manager) GetFromString(templateString string, templateName string) (*template.Template, error) {
+	var t = template.New(templateName)
+	t.Funcs(tm.DEFAULT_FUNCS)
+	var err error
+	t, err = t.Parse(templateString)
+	if err != nil {
+		return nil, errors.New("Error parsing template: " + templateName + " (" + err.Error() + ")")
+	}
+	return t, nil
+}
+
 func NicePath(forceSuffixSlash bool, p ...string) string {
 	var b strings.Builder
 	for i, s := range p {
