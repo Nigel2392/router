@@ -38,7 +38,7 @@ func (tm *Manager) Init() {
 }
 
 // Get a template
-func (tm *Manager) Get(templateName string) (*template.Template, string, error) {
+func (tm *Manager) Get(templateName string, funcs template.FuncMap) (*template.Template, string, error) {
 	// Check if template is cached
 	var t *template.Template
 	var ok bool
@@ -86,6 +86,9 @@ func (tm *Manager) Get(templateName string) (*template.Template, string, error) 
 		var err error
 		var t = template.New(template_name)
 		t.Funcs(tm.DEFAULT_FUNCS)
+		if funcs != nil {
+			t.Funcs(funcs)
+		}
 		t, err = t.ParseFS(tm.TEMPLATEFS, append(base_templates, template_name)...)
 		if err != nil {
 			return nil, "", errors.New("Error parsing template: " + template_name + " (" + err.Error() + ")")

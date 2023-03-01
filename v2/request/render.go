@@ -19,7 +19,7 @@ func (r *Request) Render(templateName string) error {
 	if TEMPLATE_MANAGER == nil {
 		panic("Template manager is nil, please set the template manager before calling Render()")
 	}
-	var t, name, err = TEMPLATE_MANAGER.Get(templateName)
+	var t, name, err = TEMPLATE_MANAGER.Get(templateName, r.ExtraFuncs)
 	if err != nil {
 		return err
 	}
@@ -44,8 +44,6 @@ func (r *Request) RenderTemplate(t *template.Template, name string) error {
 	if err != nil {
 		return err
 	}
-
-	t.Funcs(r.ExtraFuncs)
 
 	// Add default data
 	if DEFAULT_DATA_FUNC != nil {
