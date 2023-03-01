@@ -53,6 +53,7 @@ func (r *Request) RenderTemplate(t *template.Template, name string) error {
 	return t.ExecuteTemplate(r.Response, name, r.Data)
 }
 
+// Add default data to the request
 func addDefaultData(r *Request) error {
 	r.Data.Next = r.Next()
 
