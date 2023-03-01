@@ -43,6 +43,8 @@ type Request struct {
 	Session Session
 	Logger  Logger
 	URL     func(method, name string) routevars.URLFormatter
+
+	// Removed default funcs!
 }
 
 // Initialize a new request.
