@@ -147,7 +147,10 @@ func (r *Route) AddGroup(group Registrar) {
 	g.Path = r.Path + g.Path
 	g.middlewareEnabled = r.middlewareEnabled
 	for _, child := range g.children {
-		child.Path = r.Path + child.Path
+		WalkRoutes(child, func(route *Route, i int) {
+			route.Path = g.Path + route.Path
+			route.middleware = append(route.middleware, g.middleware...)
+		})
 	}
 	r.children = append([]*Route{g}, r.children...)
 }
