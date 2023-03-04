@@ -157,7 +157,7 @@ func (r *Route) AddGroup(group Registrar) {
 
 // Match checks if the given path matches the route
 func (r *Route) Match(method, path string) (bool, *Route, request.URLParams) {
-	if r.Method != ALL {
+	if r.Method != ALL && r.HandlerFunc == nil {
 		if r.Method != method && r.HandlerFunc != nil {
 			return false, nil, nil
 		}
