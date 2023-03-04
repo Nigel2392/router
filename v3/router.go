@@ -133,9 +133,10 @@ func (r *Router) URL(method, name string) routevars.URLFormatter {
 				method == ALL {
 				return route.Path
 			}
-		}
-		if r := route.url(method, parts[1:]); r != "" {
-			return r
+		} else if route.name == parts[0] && len(parts) > 1 {
+			if r := route.url(method, parts[1:]); r != "" {
+				return r
+			}
 		}
 	}
 	return ""

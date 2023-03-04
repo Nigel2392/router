@@ -40,9 +40,10 @@ func (r *Route) url(method string, parts []string) routevars.URLFormatter {
 				rmatch && method == ALL {
 				return route.Path
 			}
-		}
-		if r := route.url(method, parts[1:]); r != "" {
-			return r
+		} else if len(parts) > 1 && route.name == parts[0] {
+			if r := route.url(method, parts[1:]); r != "" {
+				return r
+			}
 		}
 	}
 	return ""
