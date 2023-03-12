@@ -65,6 +65,9 @@ type Registrar interface {
 
 	// Addgroup adds a group of routes to the router
 	AddGroup(group Registrar)
+
+	// URL returns the URL for a named route
+	URL(method, name string) routevars.URLFormatter
 }
 
 // Variable map passed to the route.

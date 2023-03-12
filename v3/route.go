@@ -2,6 +2,7 @@ package router
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/Nigel2392/router/v3/request"
 	"github.com/Nigel2392/routevars"
@@ -21,6 +22,23 @@ type Route struct {
 // Return the name of the route
 func (r *Route) Name() string {
 	return r.name
+}
+
+// URL matches a URL for the given names delimited by a colon.
+func (r *Route) URL(method, name string) routevars.URLFormatter {
+	var parts = strings.Split(name, ":")
+	if r.name == parts[0] && len(parts) == 1 {
+		if r.Method == method ||
+			r.Method == ALL ||
+			method == ALL {
+			return r.Path
+		}
+	} else if r.name == parts[0] && len(parts) > 1 {
+		if r := r.url(method, parts[1:]); r != "" {
+			return r
+		}
+	}
+	return ""
 }
 
 // Route returns the route that matches the given method and path
