@@ -142,29 +142,16 @@ func (r *Request) Next() string {
 	return r.next
 }
 
-// Redirect to a URL.
-// If the session is defined, the messages will be set in the session.
-// If the `next` argument is given, it will be added to session, unless
-// the session is not defined, the `next` parameter will be added to cookies.
-// This means they will be carried across when rendering with request.Render().
-// This will be set again after the redirect, when rendering in the default Data.
-// Optionally you could obtain this by calling request.Next().
-func (r *Request) Redirect(redirectURL string, statuscode int, next ...string) {
-	// Set the messages in the session/cookies for after the redirect.
+// Reset the next data.
+func (r *Request) ReSetNext() {
+	var next = r.Next()
+	if next != "" {
+		r.setNextURL(next)
+	}
+}
+
+func (r *Request) setNextData() {
 	if r.Session == nil {
-		// If there is a next parameter, add it to the cookies.
-		if len(next) > 0 && next[0] != "" {
-			var cookie = &http.Cookie{
-				Name:     NEXT_COOKIE_NAME,
-				Value:    next[0],
-				Path:     "/",
-				HttpOnly: true,
-				Expires:  time.Now().Add(time.Hour * 24 * 30),
-				Secure:   r.Request.TLS != nil,
-				MaxAge:   60 * 60 * 24 * 30,
-			}
-			http.SetCookie(r.Response, cookie)
-		}
 		// Set the messages in the cookies.
 		if r.Data != nil {
 			var cookie = &http.Cookie{
@@ -178,17 +165,50 @@ func (r *Request) Redirect(redirectURL string, statuscode int, next ...string) {
 			}
 			http.SetCookie(r.Response, cookie)
 		}
-
 	} else {
 		// We have sessions! :)
 		if r.Data != nil {
 			r.Session.Set(MESSAGE_COOKIE_NAME, r.Data.Messages)
 		}
-		if len(next) > 0 && next[0] != "" {
-			r.Session.Set(NEXT_COOKIE_NAME, next[0])
+	}
+}
+
+func (r *Request) setNextURL(next string) {
+	if r.Session == nil {
+		// If there is a next parameter, add it to the cookies.
+		if next != "" {
+			var cookie = &http.Cookie{
+				Name:     NEXT_COOKIE_NAME,
+				Value:    next,
+				Path:     "/",
+				HttpOnly: true,
+				Expires:  time.Now().Add(time.Hour * 24 * 30),
+				Secure:   r.Request.TLS != nil,
+				MaxAge:   60 * 60 * 24 * 30,
+			}
+			http.SetCookie(r.Response, cookie)
+		}
+
+	} else {
+		if next != "" {
+			r.Session.Set(NEXT_COOKIE_NAME, next)
 		}
 	}
+}
 
+// Redirect to a URL.
+// If the session is defined, the messages will be set in the session.
+// If the `next` argument is given, it will be added to session, unless
+// the session is not defined, the `next` parameter will be added to cookies.
+// This means they will be carried across when rendering with request.Render().
+// This will be set again after the redirect, when rendering in the default Data.
+// Optionally you could obtain this by calling request.Next().
+func (r *Request) Redirect(redirectURL string, statuscode int, next ...string) {
+	// Set the messages in the session/cookies for after the redirect.
+	if len(next) > 0 {
+		r.setNextURL(next[0])
+	}
+	r.setNextData()
 	// Redirect.
 	http.Redirect(r.Response, r.Request, redirectURL, statuscode)
 }
