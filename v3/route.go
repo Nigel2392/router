@@ -78,7 +78,7 @@ func (r *Route) HandleFunc(method, path string, handler HandleFunc, name ...stri
 		Method:            method,
 		Path:              routevars.URLFormatter(path),
 		HandlerFunc:       handler,
-		middleware:        make([]Middleware, 0),
+		middleware:        r.middleware,
 		middlewareEnabled: r.middlewareEnabled,
 		name:              n,
 	}
