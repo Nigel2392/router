@@ -115,6 +115,42 @@ func (tm *Manager) GetFromString(templateString string, templateName string) (*t
 	return t, nil
 }
 
+// Get base templates
+func (tm *Manager) GetBases(funcMap template.FuncMap) (*template.Template, error) {
+	var base_template_dirs = tm.BASE_TEMPLATE_DIRS
+	var extensions = tm.BASE_TEMPLATE_SUFFIXES
+
+	// Search fs for all base templates, in every base directory
+	var base_templates = make([]string, 0)
+	for _, base_template_dir := range base_template_dirs {
+		// Read all files in base template directory
+		files, err := fs.ReadDir(tm.TEMPLATEFS, base_template_dir)
+		if err != nil {
+			return nil, errors.New("Error reading base template directory: " + base_template_dir + " (" + err.Error() + ")")
+		}
+		// Add all files to base templates
+		for _, file := range files {
+			var name = file.Name()
+			// Check if file is a template
+			for _, extension := range extensions {
+				if name[len(name)-len(extension):] == extension {
+					base_templates = append(base_templates, base_template_dir+"/"+file.Name())
+				}
+			}
+		}
+	}
+	var t = template.New("base")
+	var newFuncMap = make(template.FuncMap)
+	for k, v := range tm.DEFAULT_FUNCS {
+		newFuncMap[k] = v
+	}
+	for k, v := range funcMap {
+		newFuncMap[k] = v
+	}
+	t.Funcs(newFuncMap)
+	return t.ParseFS(tm.TEMPLATEFS, base_templates...)
+}
+
 func NicePath(forceSuffixSlash bool, p ...string) string {
 	var b strings.Builder
 	for i, s := range p {
