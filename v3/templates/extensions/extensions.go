@@ -9,6 +9,20 @@ import (
 	"github.com/Nigel2392/router/v3/templates"
 )
 
+// ExtensionWithTemplate is an extension that has a template.
+// This is an addition to the default extensions, where you can specify your own template.
+type ExtensionWithTemplate interface {
+	Extension
+	Template(*request.Request) *template.Template
+}
+
+// ExtensionWithStrings is an extension that exists of a string.
+// This is an addition to the default extensions, where you can specify your own string as a template.
+type ExtensionWithStrings interface {
+	Extension
+	String(*request.Request) string
+}
+
 // Template extensions
 // These are extensions that are rendered into the base template.
 // This is useful, if you want to allow people from other packages
@@ -81,7 +95,7 @@ type Options struct {
 	JS  *Block
 }
 
-func (o *Options) render(buf *bytes.Buffer, ext Extension, tmpl *template.Template) {
+func (o *Options) render(buf *bytes.Buffer, ext Extension, templateString string) {
 	buf.WriteString(fmt.Sprintf(`{{template "%s" .}}`, o.TemplateName))
 	if o.CSS != nil {
 		if o.CSS.BlockName != "" {
@@ -94,7 +108,7 @@ func (o *Options) render(buf *bytes.Buffer, ext Extension, tmpl *template.Templa
 			o.CSS.write(buf)
 		}
 	}
-	buf.WriteString(tmpl.Tree.Root.String())
+	buf.WriteString(templateString)
 	if o.JS != nil {
 		if o.JS.BlockName == "" {
 			o.JS.write(buf)

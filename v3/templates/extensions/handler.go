@@ -10,16 +10,25 @@ import (
 // View returns a view that renders the extension into the base template.
 func View(options *Options, ext Extension) func(r *request.Request) {
 	return func(r *request.Request) {
+		var err error
 		var buf bytes.Buffer
-
 		var tdata = ext.View(r)
-		tmpl, err := template.ParseFS(options.ExtensionManager.TEMPLATEFS, ext.Filename())
-		if err != nil {
-			defaultErr(options, r, err)
-			return
-		}
+		var tmpl *template.Template
 
-		options.render(&buf, ext, tmpl)
+		switch ext := ext.(type) {
+		case ExtensionWithTemplate:
+			tmpl = ext.Template(r)
+			options.render(&buf, ext, tmpl.Tree.Root.String())
+		case ExtensionWithStrings:
+			options.render(&buf, ext, ext.String(r))
+		default:
+			tmpl, err = template.ParseFS(options.ExtensionManager.TEMPLATEFS, ext.Filename())
+			if err != nil {
+				defaultErr(options, r, err)
+				return
+			}
+			options.render(&buf, ext, tmpl.Tree.Root.String())
+		}
 
 		t, err := options.BaseManager.GetFromString(buf.String(), "ext")
 		if err != nil {
