@@ -6,17 +6,12 @@ import (
 	"github.com/Nigel2392/router/v3/request"
 )
 
-// Simple extension struct.
-// This is used to render the extension into the base template.
-// Avoids having to create a new struct for each extension.
-type Simple struct {
+// Base extension
+// This is the base extension.
+type Base struct {
 	// The name of the extension.
 	// This is used to uniquely identify the extension.
 	ExtensionName string
-
-	// The file name for the extension.
-	// This is the name of the template to render.
-	FileName string
 
 	// The callback that is called when the extension is rendered.
 	// This is used to get the template data and the template name.
@@ -26,25 +21,35 @@ type Simple struct {
 	Callback func(*request.Request) map[string]any
 }
 
+// Simple extension struct.
+// This is used to render the extension into the base template.
+// Avoids having to create a new struct for each extension.
+type SimpleWithFilename struct {
+	Base
+	// The file name for the extension.
+	// This is the name of the template to render.
+	FileName string
+}
+
 // Returns the name of the extension.
-func (s *Simple) Name() string {
+func (s *SimpleWithFilename) Name() string {
 	return s.ExtensionName
 }
 
 // Returns the file name of the extension.
 // This is the name of the template to render.
 // The template will be fetched from a template.Manager.
-func (s *Simple) Filename() string {
+func (s *SimpleWithFilename) Filename() string {
 	return s.FileName
 }
 
 // Returns the template data for the extension.
-func (s *Simple) View(r *request.Request) map[string]any {
+func (s *SimpleWithFilename) View(r *request.Request) map[string]any {
 	return s.Callback(r)
 }
 
 type SimpleWithTemplate struct {
-	Simple
+	Base
 	HTMLTemplate *template.Template
 }
 
@@ -57,20 +62,13 @@ func (s *SimpleWithTemplate) Name() string {
 	return s.ExtensionName
 }
 
-// Returns the file name of the extension.
-// This is the name of the template to render.
-// The template will be fetched from a template.Manager.
-func (s *SimpleWithTemplate) Filename() string {
-	return s.FileName
-}
-
 // Returns the template data for the extension.
 func (s *SimpleWithTemplate) View(r *request.Request) map[string]any {
 	return s.Callback(r)
 }
 
 type SimpleWithStrings struct {
-	Simple
+	Base
 	HTMLString string
 }
 
@@ -81,13 +79,6 @@ func (s *SimpleWithStrings) String(r *request.Request) string {
 // Returns the name of the extension.
 func (s *SimpleWithStrings) Name() string {
 	return s.ExtensionName
-}
-
-// Returns the file name of the extension.
-// This is the name of the template to render.
-// The template will be fetched from a template.Manager.
-func (s *SimpleWithStrings) Filename() string {
-	return s.FileName
 }
 
 // Returns the template data for the extension.

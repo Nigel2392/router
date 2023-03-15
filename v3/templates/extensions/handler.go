@@ -2,6 +2,7 @@ package extensions
 
 import (
 	"bytes"
+	"fmt"
 	"html/template"
 
 	"github.com/Nigel2392/router/v3/request"
@@ -21,13 +22,17 @@ func View(options *Options, ext Extension) func(r *request.Request) {
 			options.render(&buf, ext, tmpl.Tree.Root.String())
 		case ExtensionWithStrings:
 			options.render(&buf, ext, ext.String(r))
-		default:
+		case ExtensionWithFilename:
 			tmpl, err = template.ParseFS(options.ExtensionManager.TEMPLATEFS, ext.Filename())
 			if err != nil {
 				defaultErr(options, r, err)
 				return
 			}
 			options.render(&buf, ext, tmpl.Tree.Root.String())
+		default:
+			var errString = fmt.Sprintf("Extension %s does not implement any of the extension interfaces", ext.Name())
+			r.Error(500, errString)
+			panic(errString)
 		}
 
 		t, err := options.BaseManager.GetFromString(buf.String(), "ext")

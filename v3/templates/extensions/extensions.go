@@ -23,6 +23,16 @@ type ExtensionWithStrings interface {
 	String(*request.Request) string
 }
 
+// ExtensionWithFilename is an extension that exists of a file.
+// This is an addition to the default extensions, where you can specify your own file as a template.
+type ExtensionWithFilename interface {
+	Extension
+	// The file name for the extension.
+	// This is the name of the template to render.
+	// The template will be fetched from a template.Manager.
+	Filename() string
+}
+
 // Template extensions
 // These are extensions that are rendered into the base template.
 // This is useful, if you want to allow people from other packages
@@ -32,11 +42,6 @@ type Extension interface {
 	// The name of the extension.
 	// This is used to uniquely identify the extension.
 	Name() string
-
-	// The file name for the extension.
-	// This is the name of the template to render.
-	// The template will be fetched from a template.Manager.
-	Filename() string
 
 	// Extra data for the extension when it is rendered.
 	View(*request.Request) map[string]any
