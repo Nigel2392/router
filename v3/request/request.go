@@ -56,7 +56,7 @@ func NewRequest(writer http.ResponseWriter, request *http.Request, params URLPar
 		JSON:      &_json{},
 		Data:      NewTemplateData(),
 	}
-	r.Data.url = func(s string, i ...interface{}) string {
+	r.Data.Request.url = func(s string, i ...interface{}) string {
 		return r.URL("ALL", s).Format(i...)
 	}
 	r.JSON.r = &r

@@ -1,15 +1,12 @@
 package scsmiddleware
 
 import (
-	"bufio"
-	"bytes"
-	"net"
-	"net/http"
 	"time"
 
 	"github.com/Nigel2392/router/v3"
 	"github.com/Nigel2392/router/v3/middleware"
 	"github.com/Nigel2392/router/v3/request"
+	"github.com/Nigel2392/router/v3/request/writer"
 	"github.com/alexedwards/scs/v2"
 )
 
@@ -62,15 +59,18 @@ func SessionMiddleware(store *scs.SessionManager) func(next router.Handler) rout
 				return
 			}
 
-			bw := &BufferedResponseWriter{ResponseWriter: r.Response}
-			sr := r.Request.WithContext(ctx)
-
 			// Store the old response for later
 			oldWriter := r.Response
+
+			bw := writer.NewClearable(r.Response)
+			sr := r.Request.WithContext(ctx)
+
 			// Set the buffered writer as the response writer
 			r.Response = bw
+
 			// Set the new request with the context
 			r.Request = sr
+
 			// Set the session on the request
 			r.Session = &scsRequestSession{r: r, store: store}
 
@@ -97,39 +97,7 @@ func SessionMiddleware(store *scs.SessionManager) func(next router.Handler) rout
 
 			request.AddHeader(r.Response, "Vary", "Cookie")
 
-			if bw.Code != 0 {
-				oldWriter.WriteHeader(bw.Code)
-			}
-			oldWriter.Write(bw.Buf.Bytes())
+			bw.Finalize()
 		})
 	}
-}
-
-type BufferedResponseWriter struct {
-	http.ResponseWriter
-	Buf         bytes.Buffer
-	Code        int
-	WroteHeader bool
-}
-
-func (bw *BufferedResponseWriter) Write(b []byte) (int, error) {
-	return bw.Buf.Write(b)
-}
-
-func (bw *BufferedResponseWriter) WriteHeader(code int) {
-	if !bw.WroteHeader {
-		bw.Code = code
-		bw.WroteHeader = true
-	}
-}
-func (bw *BufferedResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
-	hj := bw.ResponseWriter.(http.Hijacker)
-	return hj.Hijack()
-}
-
-func (bw *BufferedResponseWriter) Push(target string, opts *http.PushOptions) error {
-	if pusher, ok := bw.ResponseWriter.(http.Pusher); ok {
-		return pusher.Push(target, opts)
-	}
-	return http.ErrNotSupported
 }

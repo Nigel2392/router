@@ -10,7 +10,7 @@ func AddUserMiddleware(f func(*request.Request) request.User) router.Middleware 
 	return func(next router.Handler) router.Handler {
 		return router.HandleFunc(func(r *request.Request) {
 			r.User = f(r)
-			r.Data.User = r.User
+			r.Data.Request.User = r.User
 			next.ServeHTTP(r)
 		})
 	}

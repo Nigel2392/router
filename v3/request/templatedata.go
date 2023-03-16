@@ -7,6 +7,16 @@ import (
 	"html/template"
 )
 
+type TemplateRequest struct {
+	url  func(string, ...interface{}) string
+	User User
+	Next string
+}
+
+func (tr *TemplateRequest) URL(path string, args ...interface{}) string {
+	return tr.url(path, args...)
+}
+
 func init() {
 	gob.Register(Messages{})
 }
@@ -31,17 +41,11 @@ type TemplateData struct {
 	Data      map[string]any
 	Messages  Messages
 	CSRFToken *CSRFToken
-	User      interface{}
-	Next      string
-	url       func(string, ...interface{}) string
+	Request   *TemplateRequest
 }
 
 func NewTemplateData() *TemplateData {
-	return &TemplateData{Data: make(map[string]any), Messages: make(Messages, 0)}
-}
-
-func (td *TemplateData) URL(path string, args ...interface{}) string {
-	return td.url(path, args...)
+	return &TemplateData{Data: make(map[string]any), Messages: make(Messages, 0), CSRFToken: nil, Request: &TemplateRequest{}}
 }
 
 func (td *TemplateData) AddMessage(messageType, message string) {

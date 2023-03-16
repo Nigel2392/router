@@ -38,7 +38,6 @@ type ExtensionWithFilename interface {
 // This is useful, if you want to allow people from other packages
 // to extend base templates of for example; an admin panel.
 type Extension interface {
-
 	// The name of the extension.
 	// This is used to uniquely identify the extension.
 	Name() string
