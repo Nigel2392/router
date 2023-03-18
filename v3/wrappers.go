@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/Nigel2392/router/v3/request"
+	"github.com/Nigel2392/router/v3/request/writer"
 )
 
 // Middleware is the function that is called when a route is matched
@@ -39,7 +40,7 @@ func FromHTTPHandler(h http.Handler) Handler {
 // Make a new http.Handler from a Handler
 func ToHTTPHandler(h Handler) http.Handler {
 	var f = func(w http.ResponseWriter, r *http.Request) {
-		h.ServeHTTP(request.NewRequest(w, r, nil))
+		h.ServeHTTP(request.NewRequest(writer.NewClearable(w), r, nil))
 	}
 	return http.HandlerFunc(f)
 }

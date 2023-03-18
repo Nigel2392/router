@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Nigel2392/router/v3/request/writer"
 	"github.com/Nigel2392/routevars"
 )
 
@@ -16,7 +17,7 @@ const NEXT_COOKIE_NAME = "next"
 // Default request to be passed around the router.
 type Request struct {
 	// Underlying http response writer.
-	Response http.ResponseWriter
+	Response writer.ClearableBufferedResponse
 
 	// Underlying http request.
 	Request *http.Request
@@ -39,16 +40,20 @@ type Request struct {
 
 	// Interfaces which can be set using the right middlewares.
 	// These interfaces are not set by default, but can be set by middleware.
-	User    User
-	Session Session
-	Logger  Logger
-	URL     func(method, name string) routevars.URLFormatter
+	User User
 
-	// Removed default funcs!
+	// Session can be set with middleware!
+	Session Session
+
+	// Logger can be set with middleware!
+	Logger Logger
+
+	// URL Func will be automatically set by the router.
+	URL func(method, name string) routevars.URLFormatter
 }
 
 // Initialize a new request.
-func NewRequest(writer http.ResponseWriter, request *http.Request, params URLParams) *Request {
+func NewRequest(writer writer.ClearableBufferedResponse, request *http.Request, params URLParams) *Request {
 	var r = &Request{
 		Response:  writer,
 		Request:   request,
@@ -75,6 +80,10 @@ func (r *Request) WriteString(s string) (int, error) {
 
 // Raise an error.
 func (r *Request) Error(code int, err string) {
+	r.Response.Buffer().Reset()
+	for k := range r.Response.Header() {
+		r.Response.Header().Del(k)
+	}
 	http.Error(r.Response, err, code)
 }
 

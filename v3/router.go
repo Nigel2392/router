@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/Nigel2392/router/v3/request"
+	"github.com/Nigel2392/router/v3/request/writer"
 	"github.com/Nigel2392/routevars"
 )
 
@@ -292,7 +293,9 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		}
 
 		// Initialize a new request.
-		var req = request.NewRequest(w, req, vars)
+		var req = request.NewRequest(writer.NewClearable(w), req, vars)
+
+		defer req.Response.Finalize()
 
 		// Set up a function to fetch routes, from any path inside a request.
 		req.URL = r.URL
@@ -303,7 +306,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	if r.conf.NotFoundHandler != nil {
-		r.conf.NotFoundHandler.ServeHTTP(request.NewRequest(w, req, nil))
+		r.conf.NotFoundHandler.ServeHTTP(request.NewRequest(writer.NewClearable(w), req, nil))
 		return
 	}
 	http.NotFound(w, req)
