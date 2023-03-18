@@ -1,10 +1,14 @@
 package router
 
 import (
+	"bytes"
+	"fmt"
 	"net/http"
 	"strings"
 
+	"github.com/Nigel2392/router/v3/client"
 	"github.com/Nigel2392/router/v3/request"
+	"github.com/Nigel2392/router/v3/request/writer"
 	"github.com/Nigel2392/routevars"
 )
 
@@ -201,4 +205,40 @@ func (r *Route) Use(middlewares ...Middleware) {
 	for _, child := range r.children {
 		child.Use(middlewares...)
 	}
+}
+
+// Call a route handler with the given request.
+//
+// It will run the route's middleware and the route's handler.
+func (r *Route) Call(req *http.Request, args ...any) (*http.Response, error) {
+	var handler = r.HandlerFunc
+	var path = r.Path.Format(args...)
+	if handler == nil {
+		panic(fmt.Sprintf("No handler for route %s", path))
+	}
+	req.URL.Path = path
+	var client = client.NewClient()
+	client.OnRecover(func(err error) {})
+	client.Request(req)
+	return client.Do()
+}
+
+// Invoke a route handler directly.
+//
+// It will not run the route's middleware.
+func (r *Route) Invoke(dest http.ResponseWriter, req *http.Request, args ...any) {
+	var handler = r.HandlerFunc
+	var path = r.Path.Format(args...)
+	if handler == nil {
+		panic(fmt.Sprintf("No handler for route %s", path))
+	}
+	req.URL.Path = path
+	var _, vars = r.Path.Match(path)
+	var resp = &writer.ClearableBufferedResponseWriter{
+		ResponseWriter: dest,
+		Buf:            new(bytes.Buffer),
+	}
+	var request = request.NewRequest(resp, req, vars)
+	defer resp.Finalize()
+	handler(request)
 }

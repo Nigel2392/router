@@ -31,10 +31,6 @@ type Request struct {
 	// The request form, which is filled when you call r.Form().
 	form url.Values
 
-	// The request JSON object, which handles returning json responses.
-	// This is mostly for semantic reasons.
-	JSON *_json
-
 	// The next url to redirect to.
 	next string
 
@@ -58,13 +54,11 @@ func NewRequest(writer writer.ClearableBufferedResponse, request *http.Request, 
 		Response:  writer,
 		Request:   request,
 		URLParams: params,
-		JSON:      &_json{},
 		Data:      NewTemplateData(),
 	}
 	r.Data.Request.url = func(s string, i ...interface{}) string {
 		return r.URL("ALL", s).Format(i...)
 	}
-	r.JSON.r = &r
 	return r
 }
 

@@ -1,8 +1,10 @@
-package request
+package response
 
 import (
 	"encoding/json"
 	"errors"
+
+	"github.com/Nigel2392/router/v3/request"
 )
 
 type ResponseStatus string
@@ -21,19 +23,14 @@ type JSONResponse struct {
 	Data   interface{}    `json:"data"`
 }
 
-// Intermediate struct for json encoding/decoding.
-type _json struct {
-	r **Request
-}
-
 // Encode json to a request.
-func (j *_json) SendResponse(jsonResponse *JSONResponse) error {
+func JSON(r *request.Request, jsonResponse *JSONResponse) error {
 	var jsonData, err = json.Marshal(jsonResponse)
 	if err != nil {
 		return err
 	}
-	(*j.r).Response.Header().Set("Content-Type", "application/json")
-	(*j.r).Response.Write(jsonData)
+	r.Response.Header().Set("Content-Type", "application/json")
+	r.Response.Write(jsonData)
 	return nil
 }
 
@@ -46,7 +43,7 @@ func (j *_json) SendResponse(jsonResponse *JSONResponse) error {
 //			"key": "value"
 //		}
 //	}
-func (j *_json) Encode(data interface{}, status ...ResponseStatus) error {
+func Encode(r *request.Request, data interface{}, status ...ResponseStatus) error {
 	var response = JSONResponse{
 		Data: data,
 	}
@@ -59,18 +56,16 @@ func (j *_json) Encode(data interface{}, status ...ResponseStatus) error {
 	if err != nil {
 		return err
 	}
-	(*j.r).Response.Header().Set("Content-Type", "application/json")
-	(*j.r).Response.Write(jsonData)
+	r.Response.Header().Set("Content-Type", "application/json")
+	r.Response.Write(jsonData)
 	return nil
 }
 
 // Decoode json from a request, into any.
-func (j *_json) Decode(data interface{}) error {
+func Decode(r *request.Request, data interface{}) error {
 	// Check header
-	var r = (*j.r).Request
-	if r.Header.Get("Content-Type") != "application/json" {
+	if r.Request.Header.Get("Content-Type") != "application/json" {
 		return errors.New("Content-Type is not application/json")
 	}
-	var err = json.NewDecoder((*j.r).Request.Body).Decode(data)
-	return err
+	return json.NewDecoder(r.Request.Body).Decode(data)
 }

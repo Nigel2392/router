@@ -69,6 +69,12 @@ type Registrar interface {
 
 	// URL returns the URL for a named route
 	URL(method, name string) routevars.URLFormatter
+
+	// Call the route, returning the response and a possible error.
+	Call(request *http.Request, args ...any) (*http.Response, error)
+
+	// Invoke the route's handler, writing to a response writer.
+	Invoke(dest http.ResponseWriter, req *http.Request, args ...any)
 }
 
 // Variable map passed to the route.
