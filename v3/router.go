@@ -2,7 +2,6 @@ package router
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -80,50 +79,18 @@ type Registrar interface {
 // Variable map passed to the route.
 type Vars map[string]string
 
-// Configuration options for the router, and serving.
-type Config struct {
-	// The address to listen on
-	Host string
-	Port int
-	// Wether to skip trailing slashes
-	SkipTrailingSlash bool
-	// The server to use
-	Server *http.Server
-	// The handler to use when a route is not found
-	NotFoundHandler Handler
-
-	// SSL options
-	CertFile string
-	KeyFile  string
-}
-
 // Router is the main router struct
 // It takes care of dispatching requests to the correct route
 type Router struct {
-	routes     []*Route
-	middleware []Middleware
-	conf       *Config
+	NotFoundHandler   HandleFunc
+	routes            []*Route
+	middleware        []Middleware
+	skipTrailingSlash bool
 }
 
 // NewRouter creates a new router
-func NewRouter(config *Config) *Router {
-	if config == nil {
-		config = &Config{
-			Host:              "127.0.0.1",
-			Port:              8000,
-			SkipTrailingSlash: true,
-			Server:            nil,
-		}
-		fmt.Println("\u001B[31m" + "WARNING: No configuration specified, using default configuration" + "\u001B[0m")
-		//	"\n" +
-		//	"\u001B[32mConfig {\u001B[0m\n" +
-		//	"  \u001B[36mHost:              \"127.0.0.1\",\u001B[0m\n" +
-		//	"  \u001B[36mPort:              8000,\u001B[0m\n" +
-		//	"  \u001B[34mSkipTrailingSlash: true,\u001B[0m\n" +
-		//	"  \u001B[32mServer:            nil,\u001B[0m\n" +
-		//	"\u001B[32m}\u001B[0m")
-	}
-	var r = &Router{routes: make([]*Route, 0), middleware: make([]Middleware, 0), conf: config}
+func NewRouter(skipTrailingSlash bool) *Router {
+	var r = &Router{routes: make([]*Route, 0), middleware: make([]Middleware, 0), skipTrailingSlash: skipTrailingSlash}
 	return r
 }
 
@@ -157,35 +124,6 @@ func (r *Router) URL(method, name string) routevars.URLFormatter {
 func (r *Router) URLFormat(name string, args ...interface{}) string {
 	var url = r.URL(ALL, name)
 	return url.Format(args...)
-}
-
-func (r *Router) server() *http.Server {
-	var server *http.Server
-	var addr = fmt.Sprintf("%s:%d", r.conf.Host, r.conf.Port)
-	if r.conf.Server == nil {
-		server = &http.Server{}
-	} else {
-		server = r.conf.Server
-	}
-	server.Addr = addr
-	server.Handler = r
-	return server
-}
-
-func (r *Router) Listen() error {
-	var server = r.server()
-	fmt.Printf("\u001B[34m"+"Starting server on: http://%s"+"\u001B[0m\n", niceAddr(server.Addr))
-	return server.ListenAndServe()
-}
-
-func (r *Router) ListenTLS() error {
-	var server = r.server()
-	if r.conf.CertFile == "" || r.conf.KeyFile == "" {
-		//lint:ignore ST1005 Error strings should not be capitalized
-		return errors.New("No certificate or key file specified")
-	}
-	fmt.Printf("\u001B[34m"+"Starting server on: https://%s (TLS)"+"\u001B[0m\n", niceAddr(server.Addr))
-	return server.ListenAndServeTLS(r.conf.CertFile, r.conf.KeyFile)
 }
 
 // HandleFunc registers a new route with the given path and method.
@@ -276,7 +214,7 @@ func (r *Router) Match(method, path string) (bool, *Route, request.URLParams) {
 // pattern matches the request URL.
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
-	if r.conf.SkipTrailingSlash && len(req.URL.Path) > 1 && req.URL.Path[len(req.URL.Path)-1] == '/' {
+	if r.skipTrailingSlash && len(req.URL.Path) > 1 && req.URL.Path[len(req.URL.Path)-1] == '/' {
 		req.URL.Path = req.URL.Path[:len(req.URL.Path)-1]
 	}
 
@@ -311,8 +249,10 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if r.conf.NotFoundHandler != nil {
-		r.conf.NotFoundHandler.ServeHTTP(request.NewRequest(writer.NewClearable(w), req, nil))
+	if r.NotFoundHandler != nil {
+		var resp = writer.NewClearable(w)
+		defer resp.Finalize()
+		r.NotFoundHandler.ServeHTTP(request.NewRequest(resp, req, nil))
 		return
 	}
 	http.NotFound(w, req)

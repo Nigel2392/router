@@ -8,17 +8,6 @@ import (
 	"github.com/Nigel2392/routevars"
 )
 
-// format an address for printing
-func niceAddr(addr string) string {
-	if addr == "" {
-		return "localhost"
-	}
-	if addr[0] == ':' {
-		return "localhost" + addr
-	}
-	return addr
-}
-
 // Group creates a new router URL group
 func Group(path string, name string) Registrar {
 	var route = &Route{Path: routevars.URLFormatter(path), middlewareEnabled: true}
