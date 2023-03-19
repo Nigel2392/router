@@ -82,7 +82,7 @@ type Vars map[string]string
 // Router is the main router struct
 // It takes care of dispatching requests to the correct route
 type Router struct {
-	NotFoundHandler   HandleFunc
+	NotFoundHandler   Handler
 	routes            []*Route
 	middleware        []Middleware
 	skipTrailingSlash bool
