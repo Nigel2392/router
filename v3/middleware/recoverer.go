@@ -1,24 +1,25 @@
 package middleware
 
 import (
-	"net/http"
-
 	"github.com/Nigel2392/router/v3"
 	"github.com/Nigel2392/router/v3/request"
 )
 
 // Recoverer recovers from panics and logs the error,
 // if the logger was set.
-func Recoverer(next router.Handler) router.Handler {
-	return router.HandleFunc(func(r *request.Request) {
-		defer func() {
-			if err := recover(); err != nil {
-				if DEFAULT_LOGGER != nil {
-					DEFAULT_LOGGER.Error(FormatMessage(r, "PANIC", "Panic: %s", err))
+func Recoverer(onError router.Handler) router.Middleware {
+	return func(next router.Handler) router.Handler {
+		return router.HandleFunc(func(r *request.Request) {
+			defer func() {
+				if err := recover(); err != nil {
+					if DEFAULT_LOGGER != nil {
+						DEFAULT_LOGGER.Error(FormatMessage(r, "PANIC", "Panic: %s", err))
+					}
+					r.Response.Clear()
+					onError.ServeHTTP(r)
 				}
-				http.Error(r.Response, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			}
-		}()
-		next.ServeHTTP(r)
-	})
+			}()
+			next.ServeHTTP(r)
+		})
+	}
 }
