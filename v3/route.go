@@ -30,6 +30,9 @@ func (r *Route) Name() string {
 }
 
 // URL matches a URL for the given names delimited by a colon.
+// Example:
+//
+// Parent:Child:GrandChild
 func (r *Route) URL(method, name string) routevars.URLFormatter {
 	var parts = strings.Split(name, ":")
 	if r.name == parts[0] && len(parts) == 1 {
