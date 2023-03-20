@@ -24,6 +24,7 @@ type Route struct {
 }
 
 // Return the name of the route
+// This can be used to match a route with the URL method
 func (r *Route) Name() string {
 	return r.name
 }
