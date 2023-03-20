@@ -18,7 +18,8 @@ const (
 	XFrameAllow XFrameOption = "ALLOW-FROM"
 )
 
-// X-Frame-Options is a header that can be used to indicate whether or not a browser should be allowed to render a page in a <frame>, <iframe> or <object> .
+// X-Frame-Options is a header that can be used to indicate whether or not a browser should be allowed to render a page in a <frame>, <iframe> or <object>.
+//
 // Sites can use this to avoid clickjacking attacks, by ensuring that their content is not embedded into other sites.
 func XFrameOptions(options XFrameOption) router.Middleware {
 	return func(next router.Handler) router.Handler {
