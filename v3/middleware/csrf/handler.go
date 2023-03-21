@@ -17,6 +17,7 @@ const (
 	CSRF_TOKEN_COOKIE_MAX_AGE   = 3600
 	CSRF_TOKEN_COOKIE_SECURE    = false
 	CSRF_TOKEN_COOKIE_HTTP_ONLY = true
+	CSRF_COOKIE_SAME_SITE       = http.SameSiteStrictMode
 )
 
 func Middleware(next router.Handler) router.Handler {
@@ -38,9 +39,10 @@ func Middleware(next router.Handler) router.Handler {
 			var cookie = &http.Cookie{
 				Name:     CSRF_TOKEN_COOKIE_NAME,
 				Value:    b64encode(t),
-				HttpOnly: true,
-				Secure:   true,
+				HttpOnly: CSRF_TOKEN_COOKIE_HTTP_ONLY,
+				Secure:   CSRF_TOKEN_COOKIE_SECURE,
 				Path:     "/",
+				SameSite: CSRF_COOKIE_SAME_SITE,
 			}
 			req.SetCookies(cookie)
 		} else {
