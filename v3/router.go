@@ -88,6 +88,16 @@ type Router struct {
 	skipTrailingSlash bool
 }
 
+func (r *Router) String() string {
+	var buf bytes.Buffer
+	for _, route := range r.routes {
+		walkRoutes(route, 1, func(r *Route, i int) {
+			fmt.Fprintf(&buf, "%s%s %s -> %s\n", strings.Repeat(" ", i), r.Method, r.Path, r.name)
+		})
+	}
+	return buf.String()
+}
+
 // NewRouter creates a new router
 func NewRouter(skipTrailingSlash bool) *Router {
 	var r = &Router{routes: make([]*Route, 0), middleware: make([]Middleware, 0), skipTrailingSlash: skipTrailingSlash}
