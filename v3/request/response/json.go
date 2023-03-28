@@ -33,6 +33,52 @@ func Json(r *request.Request, jsonResponse *JSONResponse) error {
 	return nil
 }
 
+// Render a JSONError to a request.
+type JSONError struct {
+	Message    string `json:"message"`
+	StatusCode int    `json:"status_code"` // HTTP status code
+
+	// The error that caused this error
+	Err error `json:"-"`
+}
+
+func (e *JSONError) Error() string {
+	return e.Message
+}
+
+func (e *JSONError) Unwrap() error {
+	return e.Err
+}
+
+// Create a new JSONError
+func NewJsonError(message string, statusCode int, err error) *JSONError {
+	return &JSONError{
+		Message:    message,
+		StatusCode: statusCode,
+		Err:        err,
+	}
+}
+
+func (e *JSONError) Write(r *request.Request) error {
+	jsonData, err := json.Marshal(e)
+	if err != nil {
+		return err
+	}
+	r.Response.Header().Set("Content-Type", "application/json")
+	r.Response.Write(jsonData)
+	return nil
+}
+
+func JsonError(r *request.Request, msg string, statusCode int, err error) error {
+	var response = JSONError{
+		Message:    msg,
+		StatusCode: statusCode,
+		Err:        err,
+	}
+
+	return response.Write(r)
+}
+
 // Render json to a request.
 // Response will be in the form of:
 //
