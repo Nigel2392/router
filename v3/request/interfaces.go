@@ -29,10 +29,10 @@ type Session interface {
 	RenewToken() error
 }
 
-type logLevel int
+type LogLevel int
 
 const (
-	LogLevelCritical logLevel = iota + 1
+	LogLevelCritical LogLevel = iota + 1
 	LogLevelError
 	LogLevelWarning
 	LogLevelInfo
@@ -68,5 +68,5 @@ type Logger interface {
 	Test(args ...any)
 	Testf(format string, args ...any)
 	// Retrieve the loglevel
-	LogLevel() logLevel
+	LogLevel() LogLevel
 }
