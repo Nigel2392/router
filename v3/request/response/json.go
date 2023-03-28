@@ -15,7 +15,6 @@ const (
 	ResponseStatusRedirect ResponseStatus = "redirect"
 )
 
-// Default json response which gets returned when using (j).Encode().
 type JSONResponse struct {
 	Next   string         `json:"next,omitempty"`
 	Detail string         `json:"detail,omitempty"`
@@ -24,7 +23,7 @@ type JSONResponse struct {
 }
 
 // Encode json to a request.
-func JSON(r *request.Request, jsonResponse *JSONResponse) error {
+func Json(r *request.Request, jsonResponse *JSONResponse) error {
 	var jsonData, err = json.Marshal(jsonResponse)
 	if err != nil {
 		return err
@@ -43,8 +42,9 @@ func JSON(r *request.Request, jsonResponse *JSONResponse) error {
 //			"key": "value"
 //		}
 //	}
-func Encode(r *request.Request, data interface{}, status ...ResponseStatus) error {
+func JsonEncode(r *request.Request, data interface{}, status ...ResponseStatus) error {
 	var response = JSONResponse{
+		Next: r.Next(),
 		Data: data,
 	}
 	if len(status) > 0 {
@@ -62,7 +62,7 @@ func Encode(r *request.Request, data interface{}, status ...ResponseStatus) erro
 }
 
 // Decoode json from a request, into any.
-func Decode(r *request.Request, data interface{}) error {
+func JsonDecode(r *request.Request, data interface{}) error {
 	// Check header
 	if r.Request.Header.Get("Content-Type") != "application/json" {
 		return errors.New("Content-Type is not application/json")

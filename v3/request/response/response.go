@@ -26,7 +26,7 @@ func Render(r *request.Request, templateName string) error {
 		return err
 	}
 
-	return RenderTemplate(r, t, name)
+	return Template(r, t, name)
 }
 
 // Render a string as a template
@@ -37,11 +37,11 @@ func String(r *request.Request, templateString string) error {
 		return err
 	}
 	// Render template
-	return RenderTemplate(r, t, "string")
+	return Template(r, t, "string")
 }
 
 // Render a template with the given name
-func RenderTemplate(r *request.Request, t *template.Template, name string) error {
+func Template(r *request.Request, t *template.Template, name string) error {
 	var err = addDefaultData(r)
 	if err != nil {
 		return err

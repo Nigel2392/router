@@ -15,12 +15,6 @@ func PrinterFunc(next router.Handler, out io.Writer) router.Handler {
 	})
 }
 
-func Printer(next router.Handler) router.Handler {
-	return router.HandleFunc(func(r *request.Request) {
-		printerFunc(next, r, &logger{request: r})
-	})
-}
-
 func printerFunc(next router.Handler, r *request.Request, out io.Writer) {
 	start := time.Now()
 	next.ServeHTTP(r)

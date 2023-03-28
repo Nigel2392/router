@@ -29,6 +29,17 @@ type Session interface {
 	RenewToken() error
 }
 
+type logLevel int
+
+const (
+	LogLevelCritical logLevel = iota + 1
+	LogLevelError
+	LogLevelWarning
+	LogLevelInfo
+	LogLevelDebug
+	LogLevelTest
+)
+
 // Default logger interface, can be used to set a logger on the request.
 //
 // This logger can be set in for example, the middleware, and then be used in the views by the request.
@@ -39,6 +50,8 @@ type Logger interface {
 	//
 	// than the other ways of reporting.
 	Critical(err error)
+	// Format and write a critical error message
+	Criticalf(format string, args ...any)
 	// Write an error message, loglevel error
 	Error(args ...any)
 	Errorf(format string, args ...any)
@@ -54,4 +67,6 @@ type Logger interface {
 	// Write a test message, loglevel test
 	Test(args ...any)
 	Testf(format string, args ...any)
+	// Retrieve the loglevel
+	LogLevel() logLevel
 }

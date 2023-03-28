@@ -88,11 +88,16 @@ type Router struct {
 	skipTrailingSlash bool
 }
 
+// Returns all the routes in a nicely formatted string for debugging.
 func (r *Router) String() string {
 	var buf bytes.Buffer
 	for _, route := range r.routes {
-		walkRoutes(route, 1, func(r *Route, i int) {
-			fmt.Fprintf(&buf, "%s%s %s -> %s\n", strings.Repeat(" ", i), r.Method, r.Path, r.name)
+		walkRoutes(route, 0, func(r *Route, i int) {
+			if strings.TrimSpace(r.Method) == "" {
+				fmt.Fprintf(&buf, "%s%s -> %s\n", strings.Repeat("  ", i), string(r.Path), r.name)
+			} else {
+				fmt.Fprintf(&buf, "%s%s %s -> %s\n", strings.Repeat("  ", i), r.Method, string(r.Path), r.name)
+			}
 		})
 	}
 	return buf.String()
@@ -105,9 +110,14 @@ func NewRouter(skipTrailingSlash bool) *Router {
 }
 
 // Get a route by name.
+//
 // Route names are optional, when used a route's child can be access like so:
+//
+// It looks like Django's URL routing syntax.
+//
 // router.Route("routeName")
-// router.Route("parentName:childName")
+//
+// router.Route("parentName:routeToGet")
 func (r *Router) URL(method, name string) routevars.URLFormatter {
 	var parts = strings.Split(name, ":")
 	for _, route := range r.routes {
@@ -129,7 +139,8 @@ func (r *Router) URL(method, name string) routevars.URLFormatter {
 	return ""
 }
 
-// Basically the URL func, but for easy use in templates.
+// The URL func, but for easy use in templates.
+//
 // It returns the URL, formatted based on the arguments.
 func (r *Router) URLFormat(name string, args ...interface{}) string {
 	var url = r.URL(ALL, name)
@@ -222,89 +233,93 @@ func (r *Router) Match(method, path string) (bool, *Route, request.URLParams) {
 
 // ServeHTTP dispatches the request to the handler whose
 // pattern matches the request URL.
-func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+func (r *Router) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 
-	if r.skipTrailingSlash && len(req.URL.Path) > 1 && req.URL.Path[len(req.URL.Path)-1] == '/' {
-		req.URL.Path = req.URL.Path[:len(req.URL.Path)-1]
+	if r.skipTrailingSlash && len(rq.URL.Path) > 1 && rq.URL.Path[len(rq.URL.Path)-1] == '/' {
+		rq.URL.Path = rq.URL.Path[:len(rq.URL.Path)-1]
 	}
 
-	var ok, newRoute, vars = r.Match(req.Method, req.URL.Path)
-	if ok {
-		// Create a new handler
-		var handler Handler = newRoute.HandlerFunc
-
-		// Run the route middleware
-		for i := len(newRoute.middleware) - 1; i >= 0; i-- {
-			handler = newRoute.middleware[i](handler)
+	var ok, newRoute, vars = r.Match(rq.Method, rq.URL.Path)
+	if !ok {
+		if r.NotFoundHandler != nil {
+			var resp = writer.NewClearable(w)
+			defer resp.Finalize()
+			r.NotFoundHandler.ServeHTTP(request.NewRequest(resp, rq, nil))
+			return
 		}
-
-		// Only run the global middleware if the
-		// route has middleware enabled
-		if newRoute.middlewareEnabled && len(r.middleware) > 0 {
-			for i := len(r.middleware) - 1; i >= 0; i-- {
-				handler = r.middleware[i](handler)
-			}
-		}
-
-		// Initialize a new request.
-		var req = request.NewRequest(writer.NewClearable(w), req, vars)
-
-		defer req.Response.Finalize()
-
-		// Set up a function to fetch routes, from any path inside a request.
-		req.URL = r.URL
-
-		// Serve the request
-		handler.ServeHTTP(req)
+		http.NotFound(w, rq)
 		return
 	}
 
-	if r.NotFoundHandler != nil {
-		var resp = writer.NewClearable(w)
-		defer resp.Finalize()
-		r.NotFoundHandler.ServeHTTP(request.NewRequest(resp, req, nil))
-		return
+	// Create a new handler
+	var handler Handler = newRoute.HandlerFunc
+
+	// Run the route middleware
+	for i := len(newRoute.middleware) - 1; i >= 0; i-- {
+		handler = newRoute.middleware[i](handler)
 	}
-	http.NotFound(w, req)
+
+	// Only run the global middleware if the
+	// route has middleware enabled
+	if newRoute.middlewareEnabled && len(r.middleware) > 0 {
+		for i := len(r.middleware) - 1; i >= 0; i-- {
+			handler = r.middleware[i](handler)
+		}
+	}
+
+	// Initialize a new request.
+	var req = request.NewRequest(writer.NewClearable(w), rq, vars)
+
+	// Defer the response finalization
+	//
+	// This is done to actually write to the response, instead of
+	// just buffering it.
+	defer req.Response.Finalize()
+
+	// Set up a function to fetch routes, from any path inside a request.
+	req.URL = r.URL
+
+	// Serve the request
+	handler.ServeHTTP(req)
 }
 
-var replacer = strings.NewReplacer("&", "&amp;", "<", "&lt;", ">", "&gt;", "\"", "&quot;", "'", "&apos;")
+//	var replacer = strings.NewReplacer("&", "&amp;", "<", "&lt;", ">", "&gt;", "\"", "&quot;", "'", "&apos;")
+//
+//	// SafePath escapes the path for XML
+//	func safePath(path string) string {
+//		return replacer.Replace(path)
+//	}
 
-// SafePath escapes the path for XML
-func safePath(path string) string {
-	return replacer.Replace(path)
-}
-
-// SiteMap returns a ready to use XML sitemap
-func (r *Router) SiteMap() []byte {
-	var maxDepth int
-	for _, route := range r.routes {
-		walkRoutes(route, 1, func(route *Route, depth int) {
-			if depth > maxDepth {
-				maxDepth = depth
-			}
-		})
-	}
-
-	var priority = func(depth int) float64 {
-		return 1.0 - (float64(depth) / float64(maxDepth))
-	}
-
-	var buffer bytes.Buffer
-	buffer.WriteString("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
-	buffer.WriteString("	<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n")
-	for _, route := range r.routes {
-		WalkRoutes(route, func(route *Route, depth int) {
-			var d = priority(depth)
-			if route.HandlerFunc != nil {
-				buffer.WriteString("		<url>\n")
-				buffer.WriteString("			<loc>" + safePath(string(route.Path)) + "</loc>\n")
-				buffer.WriteString("			<priority>" + fmt.Sprintf("%.2f", d) + "</priority>\n")
-				buffer.WriteString("		</url>\n")
-			}
-		})
-	}
-	buffer.WriteString(`	</urlset>`)
-
-	return buffer.Bytes()
-}
+//	// SiteMap returns a ready to use XML sitemap
+//	func (r *Router) SiteMap() []byte {
+//		var maxDepth int
+//		for _, route := range r.routes {
+//			walkRoutes(route, 1, func(route *Route, depth int) {
+//				if depth > maxDepth {
+//					maxDepth = depth
+//				}
+//			})
+//		}
+//
+//		var priority = func(depth int) float64 {
+//			return 1.0 - (float64(depth) / float64(maxDepth))
+//		}
+//
+//		var buffer bytes.Buffer
+//		buffer.WriteString("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
+//		buffer.WriteString("	<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n")
+//		for _, route := range r.routes {
+//			WalkRoutes(route, func(route *Route, depth int) {
+//				var d = priority(depth)
+//				if route.HandlerFunc != nil {
+//					buffer.WriteString("		<url>\n")
+//					buffer.WriteString("			<loc>" + safePath(string(route.Path)) + "</loc>\n")
+//					buffer.WriteString("			<priority>" + fmt.Sprintf("%.2f", d) + "</priority>\n")
+//					buffer.WriteString("		</url>\n")
+//				}
+//			})
+//		}
+//		buffer.WriteString(`	</urlset>`)
+//
+//		return buffer.Bytes()
+//	}

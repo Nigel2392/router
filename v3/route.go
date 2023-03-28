@@ -213,7 +213,13 @@ func (r *Route) Use(middlewares ...Middleware) {
 
 // Call a route handler with the given request.
 //
+// Do so by making a HTTP request to the route's url.
+//
+// If te url takes arguments, you need to pass them into Call.
+//
 // It will run the route's middleware and the route's handler.
+//
+// This will
 func (r *Route) Call(req *http.Request, args ...any) (*http.Response, error) {
 	var handler = r.HandlerFunc
 	var path = r.Path.Format(args...)
@@ -228,6 +234,8 @@ func (r *Route) Call(req *http.Request, args ...any) (*http.Response, error) {
 }
 
 // Invoke a route handler directly.
+//
+// If te url takes arguments, you need to pass them into Invoke.
 //
 // It will not run the route's middleware.
 func (r *Route) Invoke(dest http.ResponseWriter, req *http.Request, args ...any) {
