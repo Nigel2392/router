@@ -1,10 +1,13 @@
 package router
 
 import (
+	"io/fs"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/Nigel2392/router/v3/request"
+	"github.com/Nigel2392/router/v3/templates"
 	"github.com/Nigel2392/routevars"
 )
 
@@ -46,4 +49,30 @@ func HTTPWrapper(handler func(http.ResponseWriter, *http.Request)) HandleFunc {
 	return func(r *request.Request) {
 		handler(r.Response, r.Request)
 	}
+}
+
+func NewFSRoute(static_url string, name string, fs fs.FS) Registrar {
+	var newStatic = templates.NicePath(false, "/", static_url, "/<<any>>")
+	var static_route = Group(
+		newStatic, "static",
+	)
+	var r = static_route.(*Route)
+	r.Method = GET
+	r.HandlerFunc = FromHTTPHandler(http.StripPrefix(
+		wrapSlash(static_url),
+		http.FileServer(
+			http.FS(fs),
+		),
+	)).ServeHTTP
+	return r
+}
+
+func wrapSlash(p string) string {
+	if !strings.HasPrefix(p, "/") {
+		p = "/" + p
+	}
+	if !strings.HasSuffix(p, "/") {
+		p = p + "/"
+	}
+	return p
 }
