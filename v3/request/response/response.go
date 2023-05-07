@@ -57,7 +57,14 @@ func Template(r *request.Request, t *template.Template, name string) error {
 
 // Add default data to the request
 func addDefaultData(r *request.Request) error {
+	if r.Data == nil {
+		r.Data = &request.TemplateData{}
+	}
+	if r.Data.Request == nil {
+		r.Data.Request = &request.TemplateRequest{}
+	}
 	r.Data.Request.Next = r.Next()
+	r.Data.Request.User = r.User
 	// Get the messages from the session
 	if r.Session != nil {
 		var messages = r.Session.Get(request.MESSAGE_COOKIE_NAME)

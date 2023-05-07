@@ -8,6 +8,7 @@ import (
 
 	"github.com/Nigel2392/router/v3/client"
 	"github.com/Nigel2392/router/v3/request"
+	"github.com/Nigel2392/router/v3/request/params"
 	"github.com/Nigel2392/router/v3/request/writer"
 	"github.com/Nigel2392/routevars"
 )
@@ -183,7 +184,7 @@ func (r *Route) AddGroup(group Registrar) {
 }
 
 // Match checks if the given path matches the route
-func (r *Route) Match(method, path string) (bool, *Route, request.URLParams) {
+func (r *Route) Match(method, path string) (bool, *Route, params.URLParams) {
 	if r.Method != ALL && r.HandlerFunc == nil {
 		if r.Method != method && r.HandlerFunc != nil {
 			return false, nil, nil

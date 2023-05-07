@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/Nigel2392/router/v3/request"
+	"github.com/Nigel2392/router/v3/request/params"
 	"github.com/Nigel2392/router/v3/request/writer"
 	"github.com/Nigel2392/routevars"
 )
@@ -222,7 +223,7 @@ func (r *Router) AddGroup(group Registrar) {
 }
 
 // Match returns the route that matches the given method and path.
-func (r *Router) Match(method, path string) (bool, *Route, request.URLParams) {
+func (r *Router) Match(method, path string) (bool, *Route, params.URLParams) {
 	for _, route := range r.routes {
 		if ok, newRoute, vars := route.Match(method, path); ok {
 			return ok, newRoute, vars

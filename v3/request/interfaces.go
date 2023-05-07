@@ -15,6 +15,9 @@ type User interface {
 
 	// Check if the user is an administator
 	IsAdmin() bool
+
+	// Check permissions, if the user is an admin, this should return true.
+	HasPermissions(permissions ...string) bool
 }
 
 // This interface will be set on the request, but is only useful if any middleware

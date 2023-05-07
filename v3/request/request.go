@@ -2,11 +2,13 @@ package request
 
 import (
 	"bytes"
+	"context"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
 
+	"github.com/Nigel2392/router/v3/request/params"
 	"github.com/Nigel2392/router/v3/request/writer"
 	"github.com/Nigel2392/routevars"
 )
@@ -26,7 +28,10 @@ type Request struct {
 	Data *TemplateData
 
 	// URL Parameters set inside of the router.
-	URLParams URLParams
+	URLParams params.URLParams
+
+	// Query parameters set inside of the router.
+	QueryParams url.Values
 
 	// The request form, which is filled when you call r.Form().
 	form url.Values
@@ -49,12 +54,13 @@ type Request struct {
 }
 
 // Initialize a new request.
-func NewRequest(writer writer.ClearableBufferedResponse, request *http.Request, params URLParams) *Request {
+func NewRequest(writer writer.ClearableBufferedResponse, request *http.Request, params params.URLParams) *Request {
 	var r = &Request{
-		Response:  writer,
-		Request:   request,
-		URLParams: params,
-		Data:      NewTemplateData(),
+		Response:    writer,
+		Request:     request,
+		URLParams:   params,
+		QueryParams: request.URL.Query(),
+		Data:        NewTemplateData(),
 	}
 	r.Data.Request.url = func(s string, i ...interface{}) string {
 		return r.URL("ALL", s).Format(i...)
@@ -70,6 +76,11 @@ func (r *Request) Write(b []byte) (int, error) {
 // Write a string to the response.
 func (r *Request) WriteString(s string) (int, error) {
 	return r.Response.Write([]byte(s))
+}
+
+// Retrieve the context.
+func (r *Request) Context() context.Context {
+	return r.Request.Context()
 }
 
 // Raise an error.
