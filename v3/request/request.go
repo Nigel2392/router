@@ -61,6 +61,7 @@ func NewRequest(writer writer.ClearableBufferedResponse, request *http.Request, 
 		URLParams:   params,
 		QueryParams: request.URL.Query(),
 		Data:        NewTemplateData(),
+		Logger:      NewNopLogger(),
 	}
 	r.Data.Request.url = func(s string, i ...interface{}) string {
 		return r.URL("ALL", s).Format(i...)
