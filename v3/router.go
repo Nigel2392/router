@@ -29,31 +29,31 @@ const (
 // Registrar is the main interface for registering routes
 type Registrar interface {
 	// Put registers a new route with the given path and method.
-	Put(path string, handler HandleFunc, name ...string) Registrar
+	Put(path string, handler Handler, name ...string) Registrar
 
 	// Post registers a new route with the given path and method.
-	Post(path string, handler HandleFunc, name ...string) Registrar
+	Post(path string, handler Handler, name ...string) Registrar
 
 	// Get registers a new route with the given path and method.
-	Get(path string, handler HandleFunc, name ...string) Registrar
+	Get(path string, handler Handler, name ...string) Registrar
 
 	// Delete registers a new route with the given path and method.
-	Delete(path string, handler HandleFunc, name ...string) Registrar
+	Delete(path string, handler Handler, name ...string) Registrar
 
 	// Patch registers a new route with the given path and method.
-	Patch(path string, handler HandleFunc, name ...string) Registrar
+	Patch(path string, handler Handler, name ...string) Registrar
 
 	// Options registers a new route with the given path and method.
-	Options(path string, handler HandleFunc, name ...string) Registrar
+	Options(path string, handler Handler, name ...string) Registrar
 
 	// Head registers a new route with the given path and method.
-	Head(path string, handler HandleFunc, name ...string) Registrar
+	Head(path string, handler Handler, name ...string) Registrar
 
 	// Register a route for all methods
-	Any(path string, handler HandleFunc, name ...string) Registrar
+	Any(path string, handler Handler, name ...string) Registrar
 
 	// HandleFunc registers a new route with the given path and method.
-	HandleFunc(method, path string, handler HandleFunc, name ...string) Registrar
+	HandleFunc(method, path string, handler Handler, name ...string) Registrar
 
 	// Handle is a convenience method that wraps the http.Handler in a HandleFunc
 	Handle(method, path string, handler http.Handler) Registrar

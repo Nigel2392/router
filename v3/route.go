@@ -17,7 +17,7 @@ import (
 type Route struct {
 	Method            string
 	Path              routevars.URLFormatter
-	HandlerFunc       HandleFunc
+	HandlerFunc       Handler
 	middleware        []Middleware
 	children          []*Route
 	middlewareEnabled bool
@@ -77,7 +77,7 @@ func (r *Route) url(method string, parts []string) routevars.URLFormatter {
 }
 
 // HandleFunc registers a new route with the given path and method.
-func (r *Route) HandleFunc(method, path string, handler HandleFunc, name ...string) Registrar {
+func (r *Route) HandleFunc(method, path string, handler Handler, name ...string) Registrar {
 	var n = r.name
 	if len(name) > 0 {
 		n = name[0]
@@ -110,42 +110,42 @@ func (r *Route) Handle(method, path string, handler http.Handler) Registrar {
 }
 
 // Put registers a new route with the given path and method.
-func (r *Route) Put(path string, handler HandleFunc, name ...string) Registrar {
+func (r *Route) Put(path string, handler Handler, name ...string) Registrar {
 	return r.HandleFunc("PUT", path, handler, name...)
 }
 
 // Post registers a new route with the given path and method.
-func (r *Route) Post(path string, handler HandleFunc, name ...string) Registrar {
+func (r *Route) Post(path string, handler Handler, name ...string) Registrar {
 	return r.HandleFunc("POST", path, handler, name...)
 }
 
 // Get registers a new route with the given path and method.
-func (r *Route) Get(path string, handler HandleFunc, name ...string) Registrar {
+func (r *Route) Get(path string, handler Handler, name ...string) Registrar {
 	return r.HandleFunc("GET", path, handler, name...)
 }
 
 // Delete registers a new route with the given path and method.
-func (r *Route) Delete(path string, handler HandleFunc, name ...string) Registrar {
+func (r *Route) Delete(path string, handler Handler, name ...string) Registrar {
 	return r.HandleFunc("DELETE", path, handler, name...)
 }
 
 // Patch registers a new route with the given path and method.
-func (r *Route) Patch(path string, handler HandleFunc, name ...string) Registrar {
+func (r *Route) Patch(path string, handler Handler, name ...string) Registrar {
 	return r.HandleFunc("PATCH", path, handler, name...)
 }
 
 // Options registers a new route with the given path and method.
-func (r *Route) Options(path string, handler HandleFunc, name ...string) Registrar {
+func (r *Route) Options(path string, handler Handler, name ...string) Registrar {
 	return r.HandleFunc("OPTIONS", path, handler, name...)
 }
 
 // Head registers a new route with the given path and method.
-func (r *Route) Head(path string, handler HandleFunc, name ...string) Registrar {
+func (r *Route) Head(path string, handler Handler, name ...string) Registrar {
 	return r.HandleFunc("HEAD", path, handler, name...)
 }
 
 // Register a route for all methods
-func (r *Route) Any(path string, handler HandleFunc, name ...string) Registrar {
+func (r *Route) Any(path string, handler Handler, name ...string) Registrar {
 	return r.HandleFunc(ALL, path, handler, name...)
 }
 
@@ -253,5 +253,5 @@ func (r *Route) Invoke(dest http.ResponseWriter, req *http.Request, args ...any)
 	}
 	var request = request.NewRequest(resp, req, vars)
 	defer resp.Finalize()
-	handler(request)
+	handler.ServeHTTP(request)
 }

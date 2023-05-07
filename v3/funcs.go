@@ -13,9 +13,20 @@ import (
 
 // Group creates a new router URL group
 func Group(path string, name string) Registrar {
-	var route = &Route{Path: routevars.URLFormatter(path), middlewareEnabled: true}
+	var route = &Route{Path: routevars.URLFormatter(path), middlewareEnabled: true, Method: ALL}
 	route.name = name
 	return route
+}
+
+// NewRoute creates a new url group with a handler registered to it.
+func NewRoute(method, path string, name string, handler HandleFunc) Registrar {
+	return &Route{
+		Path:              routevars.URLFormatter(path),
+		middlewareEnabled: true,
+		Method:            method,
+		name:              name,
+		HandlerFunc:       handler,
+	}
 }
 
 // Recurse over a routes children, keeping track of depth
@@ -63,7 +74,7 @@ func NewFSRoute(static_url string, name string, fs fs.FS) Registrar {
 		http.FileServer(
 			http.FS(fs),
 		),
-	)).ServeHTTP
+	))
 	return r
 }
 
