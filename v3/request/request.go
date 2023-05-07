@@ -84,6 +84,8 @@ func (r *Request) Context() context.Context {
 }
 
 // Raise an error.
+//
+// This will clear any buffered response, and set the error code.
 func (r *Request) Error(code int, err string) {
 	r.Response.Buffer().Reset()
 	for k := range r.Response.Header() {
