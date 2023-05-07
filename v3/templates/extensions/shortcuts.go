@@ -21,10 +21,11 @@ type Base struct {
 	Callback func(*request.Request) map[string]any
 }
 
-// Simple extension struct.
+//	extension struct.
+//
 // This is used to render the extension into the base template.
 // Avoids having to create a new struct for each extension.
-type SimpleWithFilename struct {
+type WithFilename struct {
 	Base
 	// The file name for the extension.
 	// This is the name of the template to render.
@@ -32,56 +33,56 @@ type SimpleWithFilename struct {
 }
 
 // Returns the name of the extension.
-func (s *SimpleWithFilename) Name() string {
+func (s *WithFilename) Name() string {
 	return s.ExtensionName
 }
 
 // Returns the file name of the extension.
 // This is the name of the template to render.
 // The template will be fetched from a template.Manager.
-func (s *SimpleWithFilename) Filename() string {
+func (s *WithFilename) Filename() string {
 	return s.FileName
 }
 
 // Returns the template data for the extension.
-func (s *SimpleWithFilename) View(r *request.Request) map[string]any {
+func (s *WithFilename) View(r *request.Request) map[string]any {
 	return s.Callback(r)
 }
 
-type SimpleWithTemplate struct {
+type WithTemplate struct {
 	Base
 	HTMLTemplate *template.Template
 }
 
-func (s *SimpleWithTemplate) Template(r *request.Request) *template.Template {
+func (s *WithTemplate) Template(r *request.Request) *template.Template {
 	return s.HTMLTemplate
 }
 
 // Returns the name of the extension.
-func (s *SimpleWithTemplate) Name() string {
+func (s *WithTemplate) Name() string {
 	return s.ExtensionName
 }
 
 // Returns the template data for the extension.
-func (s *SimpleWithTemplate) View(r *request.Request) map[string]any {
+func (s *WithTemplate) View(r *request.Request) map[string]any {
 	return s.Callback(r)
 }
 
-type SimpleWithStrings struct {
+type WithStrings struct {
 	Base
 	HTMLString string
 }
 
-func (s *SimpleWithStrings) String(r *request.Request) string {
+func (s *WithStrings) String(r *request.Request) string {
 	return s.HTMLString
 }
 
 // Returns the name of the extension.
-func (s *SimpleWithStrings) Name() string {
+func (s *WithStrings) Name() string {
 	return s.ExtensionName
 }
 
 // Returns the template data for the extension.
-func (s *SimpleWithStrings) View(r *request.Request) map[string]any {
+func (s *WithStrings) View(r *request.Request) map[string]any {
 	return s.Callback(r)
 }

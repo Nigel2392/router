@@ -1,6 +1,5 @@
 # Example of robots.txt handler
 
-```go
 var options = &robots.Options{
     Rules: []*robots.Listing{
         {
@@ -25,12 +24,9 @@ var options = &robots.Options{
     Sitemap: "https://example.com/sitemap.xml",
 }
 
-
 func main(){
-    var r = router.NewRouter(nil)
+    var r = router.NewRouter(false)
     var robotsHandler = robots.Robots(options)
     r.Get("/robots.txt", robotsHandler)
     r.Listen()
 }
-
-```

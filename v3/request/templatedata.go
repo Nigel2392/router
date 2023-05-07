@@ -45,7 +45,12 @@ type TemplateData struct {
 }
 
 func NewTemplateData() *TemplateData {
-	return &TemplateData{Data: make(map[string]any), Messages: make(Messages, 0), CSRFToken: nil, Request: &TemplateRequest{}}
+	return &TemplateData{
+		Data:      make(map[string]any),
+		Messages:  make(Messages, 0),
+		CSRFToken: nil,
+		Request:   &TemplateRequest{},
+	}
 }
 
 func (td *TemplateData) AddMessage(messageType, message string) {

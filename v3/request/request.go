@@ -2,11 +2,14 @@ package request
 
 import (
 	"bytes"
+	"context"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
 
+	"github.com/Nigel2392/router/v3/request/params"
+	"github.com/Nigel2392/router/v3/request/writer"
 	"github.com/Nigel2392/routevars"
 )
 
@@ -16,7 +19,7 @@ const NEXT_COOKIE_NAME = "next"
 // Default request to be passed around the router.
 type Request struct {
 	// Underlying http response writer.
-	Response http.ResponseWriter
+	Response writer.ClearableBufferedResponse
 
 	// Underlying http request.
 	Request *http.Request
@@ -25,41 +28,43 @@ type Request struct {
 	Data *TemplateData
 
 	// URL Parameters set inside of the router.
-	URLParams URLParams
+	URLParams params.URLParams
+
+	// Query parameters set inside of the router.
+	QueryParams url.Values
 
 	// The request form, which is filled when you call r.Form().
 	form url.Values
-
-	// The request JSON object, which handles returning json responses.
-	// This is mostly for semantic reasons.
-	JSON *_json
 
 	// The next url to redirect to.
 	next string
 
 	// Interfaces which can be set using the right middlewares.
 	// These interfaces are not set by default, but can be set by middleware.
-	User    User
-	Session Session
-	Logger  Logger
-	URL     func(method, name string) routevars.URLFormatter
+	User User
 
-	// Removed default funcs!
+	// Session can be set with middleware!
+	Session Session
+
+	// Logger can be set with middleware!
+	Logger Logger
+
+	// URL Func will be automatically set by the router.
+	URL func(method, name string) routevars.URLFormatter
 }
 
 // Initialize a new request.
-func NewRequest(writer http.ResponseWriter, request *http.Request, params URLParams) *Request {
+func NewRequest(writer writer.ClearableBufferedResponse, request *http.Request, params params.URLParams) *Request {
 	var r = &Request{
-		Response:  writer,
-		Request:   request,
-		URLParams: params,
-		JSON:      &_json{},
-		Data:      NewTemplateData(),
+		Response:    writer,
+		Request:     request,
+		URLParams:   params,
+		QueryParams: request.URL.Query(),
+		Data:        NewTemplateData(),
 	}
 	r.Data.Request.url = func(s string, i ...interface{}) string {
 		return r.URL("ALL", s).Format(i...)
 	}
-	r.JSON.r = &r
 	return r
 }
 
@@ -73,8 +78,19 @@ func (r *Request) WriteString(s string) (int, error) {
 	return r.Response.Write([]byte(s))
 }
 
+// Retrieve the context.
+func (r *Request) Context() context.Context {
+	return r.Request.Context()
+}
+
 // Raise an error.
+//
+// This will clear any buffered response, and set the error code.
 func (r *Request) Error(code int, err string) {
+	r.Response.Buffer().Reset()
+	for k := range r.Response.Header() {
+		r.Response.Header().Del(k)
+	}
 	http.Error(r.Response, err, code)
 }
 

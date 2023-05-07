@@ -1,10 +1,15 @@
 package router
 
 import (
+	"bytes"
+	"fmt"
 	"net/http"
 	"strings"
 
+	"github.com/Nigel2392/router/v3/client"
 	"github.com/Nigel2392/router/v3/request"
+	"github.com/Nigel2392/router/v3/request/params"
+	"github.com/Nigel2392/router/v3/request/writer"
 	"github.com/Nigel2392/routevars"
 )
 
@@ -20,11 +25,15 @@ type Route struct {
 }
 
 // Return the name of the route
+// This can be used to match a route with the URL method
 func (r *Route) Name() string {
 	return r.name
 }
 
 // URL matches a URL for the given names delimited by a colon.
+// Example:
+//
+// Parent:Child:GrandChild
 func (r *Route) URL(method, name string) routevars.URLFormatter {
 	var parts = strings.Split(name, ":")
 	if r.name == parts[0] && len(parts) == 1 {
@@ -175,7 +184,7 @@ func (r *Route) AddGroup(group Registrar) {
 }
 
 // Match checks if the given path matches the route
-func (r *Route) Match(method, path string) (bool, *Route, request.URLParams) {
+func (r *Route) Match(method, path string) (bool, *Route, params.URLParams) {
 	if r.Method != ALL && r.HandlerFunc == nil {
 		if r.Method != method && r.HandlerFunc != nil {
 			return false, nil, nil
@@ -201,4 +210,48 @@ func (r *Route) Use(middlewares ...Middleware) {
 	for _, child := range r.children {
 		child.Use(middlewares...)
 	}
+}
+
+// Call a route handler with the given request.
+//
+// Do so by making a HTTP request to the route's url.
+//
+// If te url takes arguments, you need to pass them into Call.
+//
+// It will run the route's middleware and the route's handler.
+//
+// This will
+func (r *Route) Call(req *http.Request, args ...any) (*http.Response, error) {
+	var handler = r.HandlerFunc
+	var path = r.Path.Format(args...)
+	if handler == nil {
+		panic(fmt.Sprintf("No handler for route %s", path))
+	}
+	req.URL.Path = path
+	var client = client.NewClient()
+	client.OnRecover(func(err error) {})
+	client.Request(req)
+	return client.Do()
+}
+
+// Invoke a route handler directly.
+//
+// If te url takes arguments, you need to pass them into Invoke.
+//
+// It will not run the route's middleware.
+func (r *Route) Invoke(dest http.ResponseWriter, req *http.Request, args ...any) {
+	var handler = r.HandlerFunc
+	var path = r.Path.Format(args...)
+	if handler == nil {
+		panic(fmt.Sprintf("No handler for route %s", path))
+	}
+	req.URL.Path = path
+	var _, vars = r.Path.Match(path)
+	var resp = &writer.ClearableBufferedResponseWriter{
+		ResponseWriter: dest,
+		Buf:            new(bytes.Buffer),
+	}
+	var request = request.NewRequest(resp, req, vars)
+	defer resp.Finalize()
+	handler(request)
 }
