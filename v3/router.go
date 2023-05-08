@@ -256,8 +256,10 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	var handler Handler = newRoute.HandlerFunc
 
 	// Run the route middleware
-	for i := len(newRoute.middleware) - 1; i >= 0; i-- {
-		handler = newRoute.middleware[i](handler)
+	if newRoute.middlewareEnabled && len(newRoute.middleware) > 0 {
+		for i := len(newRoute.middleware) - 1; i >= 0; i-- {
+			handler = newRoute.middleware[i](handler)
+		}
 	}
 
 	// Only run the global middleware if the
