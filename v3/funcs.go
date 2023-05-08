@@ -68,14 +68,19 @@ func NewFSRoute(static_url string, name string, fs fs.FS) Registrar {
 		newStatic, "static",
 	)
 	var r = static_route.(*Route)
+	r.name = name
 	r.Method = GET
-	r.HandlerFunc = FromHTTPHandler(http.StripPrefix(
+	r.HandlerFunc = NewFSHandler(static_url, fs)
+	return r
+}
+
+func NewFSHandler(static_url string, fs fs.FS) Handler {
+	return FromHTTPHandler(http.StripPrefix(
 		wrapSlash(static_url),
 		http.FileServer(
 			http.FS(fs),
 		),
 	))
-	return r
 }
 
 func wrapSlash(p string) string {
