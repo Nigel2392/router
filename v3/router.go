@@ -75,6 +75,12 @@ type Registrar interface {
 
 	// Invoke the route's handler, writing to a response writer.
 	Invoke(dest http.ResponseWriter, req *http.Request, args ...any)
+
+	// Returns the formatted URL for this route.
+	//
+	// If no arguments are provided it will return the path as it is set on the route.
+	// This means it will be returned as /my/blog/<<post_id:int>>
+	Format(args ...any) string
 }
 
 // Variable map passed to the route.

@@ -30,6 +30,17 @@ func (r *Route) Name() string {
 	return r.name
 }
 
+// Returns the formatted URL for this route.
+//
+// If no arguments are provided it will return the path as it is set on the route.
+// This means it will be returned as /my/blog/<<post_id:int>>
+func (r *Route) Format(args ...any) string {
+	if len(args) <= 0 {
+		return string(r.Path)
+	}
+	return r.Path.Format(args)
+}
+
 // URL matches a URL for the given names delimited by a colon.
 // Example:
 //
