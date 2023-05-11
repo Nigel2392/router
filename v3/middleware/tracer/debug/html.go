@@ -199,6 +199,7 @@ func RenderStackTrace(s tracer.ErrorType, r *request.Request) {
 	r.WriteString("</div>")
 }
 
+// Render the request to the error page.
 func RenderRequest(b *request.Request) {
 	b.WriteString("<div class=\"container\">")
 	Header(b, "Request")
