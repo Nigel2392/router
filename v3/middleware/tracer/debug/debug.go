@@ -1,6 +1,9 @@
 package debug
 
 import (
+	"html"
+	"strings"
+
 	"github.com/Nigel2392/router/v3"
 	"github.com/Nigel2392/router/v3/middleware"
 	"github.com/Nigel2392/router/v3/middleware/tracer"
@@ -41,27 +44,29 @@ type AppSettings struct {
 // app.Application.DEBUG variable to false. (This will disable it! Recommended.)
 func StacktraceMiddleware(settings *AppSettings) router.Middleware {
 	return middleware.Recoverer(func(err error, r *request.Request) {
+		var b strings.Builder
 		var stackTrace = tracer.TraceSafe(err, 16, 1)
-		r.Response.Clear()
-		r.WriteString("<!DOCTYPE html>\n<html>")
-		r.WriteString("<head>")
-		StyleBlock(r)
-		r.WriteString("</head>")
-		r.WriteString("<body>")
+		StyleBlock(&b)
+		b.WriteString("</head>")
+		b.WriteString("<body>")
 		// Render standard error message and debug disable warning.
-		RenderStdInfo(r, stackTrace)
+		RenderStdInfo(&b, stackTrace)
 		// Render a stacktrace of the error.
-		RenderStackTrace(stackTrace, r)
+		RenderStackTrace(stackTrace, &b)
 		// Render additional potentially useful information.
 		if tracer.STACKLOGGER_UNSAFE {
 			// Render the request.
-			RenderRequest(r)
+			RenderRequest(&b, r)
 			if settings != nil {
 				// Render some potentially relevant settings.
-				RenderSettings(r, settings)
+				RenderSettings(&b, settings)
 			}
 		}
-
+		r.Response.Clear()
+		r.WriteString("<!DOCTYPE html>\n<html>")
+		r.WriteString("<head>")
+		// Render the stacktrace.
+		r.WriteString(html.EscapeString(b.String()))
 		r.WriteString("</body>")
 		r.WriteString("</html>")
 	})

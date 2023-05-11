@@ -154,7 +154,7 @@ func RenderStdInfo(r requestWriter, s tracer.ErrorType) {
 	r.WriteString("</div>")
 }
 
-func RenderStackTrace(s tracer.ErrorType, r *request.Request) {
+func RenderStackTrace(s tracer.ErrorType, r requestWriter) {
 	r.WriteString("<div class=\"container\">")
 	MedHeader(r, "Stack Trace")
 	SubHeader(r, `An error has occurred, please consider looking at the following stacktrace.`)
@@ -198,12 +198,12 @@ func RenderStackTrace(s tracer.ErrorType, r *request.Request) {
 	r.WriteString("</div>")
 }
 
-func RenderRequest(b *request.Request) {
+func RenderRequest(b requestWriter, r *request.Request) {
 	b.WriteString("<div class=\"container\">")
 	Header(b, "Request")
 	HorizontalRuleXS(b)
 	SubHeader(b, `The following information is about the request that caused the error.`)
-	var headers = b.Request.Header
+	var headers = r.Request.Header
 	b.WriteString("<pre class=\"tracer-settings\">")
 	if len(headers) > 0 {
 		MedHeader(b, makeBold("Headers:"))
@@ -226,17 +226,17 @@ func RenderRequest(b *request.Request) {
 		}
 		fmt.Fprintln(b)
 	}
-	var cookies = b.Request.Cookies()
+	var cookies = r.Request.Cookies()
 	if len(cookies) > 0 {
 		MedHeader(b, makeBold("Cookies:"))
-		for _, cookie := range b.Request.Cookies() {
+		for _, cookie := range r.Request.Cookies() {
 			fmt.Fprintf(b, "%s: %s\n", makeBold(cookie.Name), cookie.Value)
 		}
 	}
 	var buf = new(bytes.Buffer)
-	if b.Request.Body != nil {
-		defer b.Request.Body.Close()
-		var _, err = io.Copy(buf, b.Request.Body)
+	if r.Request.Body != nil {
+		defer r.Request.Body.Close()
+		var _, err = io.Copy(buf, r.Request.Body)
 		if err != nil {
 			fmt.Fprintf(b, "Error reading request body: %s", err.Error())
 		}
@@ -245,7 +245,7 @@ func RenderRequest(b *request.Request) {
 			b.WriteString(buf.String())
 		}
 	}
-	var form = b.Form()
+	var form = r.Form()
 	if len(form) > 0 {
 		MedHeader(b, makeBold("Form:"))
 		for k, v := range form {
@@ -253,22 +253,22 @@ func RenderRequest(b *request.Request) {
 		}
 		fmt.Fprintln(b)
 	}
-	if b.Data != nil && (len(b.Data.Data) > 0 ||
-		(b.Data.CSRFToken != nil && b.Data.CSRFToken.String() != "") ||
-		b.User != nil) {
+	if r.Data != nil && (len(r.Data.Data) > 0 ||
+		(r.Data.CSRFToken != nil && r.Data.CSRFToken.String() != "") ||
+		r.User != nil) {
 
-		if len(b.Data.Data) > 0 {
+		if len(r.Data.Data) > 0 {
 			MedHeader(b, makeBold("Data:"))
-			for k, v := range b.Data.Data {
+			for k, v := range r.Data.Data {
 				fmt.Fprintf(b, "%s: %v\n", makeBold(k), v)
 			}
 		}
-		var csrfToken = csrf.Token(b)
+		var csrfToken = csrf.Token(r)
 		if csrfToken != "" {
 			fmt.Fprintf(b, "CSRFToken: %s\n", csrfToken)
 		}
-		if b.User != nil {
-			fmt.Fprintf(b, "User: %s\n", makeBold(b.User))
+		if r.User != nil {
+			fmt.Fprintf(b, "User: %s\n", makeBold(r.User))
 		}
 		fmt.Fprintln(b)
 	}
