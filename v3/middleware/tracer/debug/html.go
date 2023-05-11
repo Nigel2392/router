@@ -373,6 +373,7 @@ func Paragraph(b requestWriter, s string) {
 	b.WriteString("</p>")
 }
 
+// Pre tag
 func Pre(b requestWriter, s string) {
 	b.WriteString("<pre class=\"")
 	b.WriteString(HTML_CLASS_PRE)
