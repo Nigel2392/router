@@ -46,9 +46,12 @@ func StacktraceMiddleware(settings *AppSettings) router.Middleware {
 	return middleware.Recoverer(func(err error, r *request.Request) {
 		var b strings.Builder
 		var stackTrace = tracer.TraceSafe(err, 16, 1)
-		StyleBlock(&b)
-		b.WriteString("</head>")
-		b.WriteString("<body>")
+		r.Response.Clear()
+		r.WriteString("<!DOCTYPE html>\n<html>")
+		r.WriteString("<head>")
+		StyleBlock(r)
+		r.WriteString("</head>")
+		r.WriteString("<body>")
 		// Render standard error message and debug disable warning.
 		RenderStdInfo(&b, stackTrace)
 		// Render a stacktrace of the error.
@@ -62,9 +65,6 @@ func StacktraceMiddleware(settings *AppSettings) router.Middleware {
 				RenderSettings(&b, settings)
 			}
 		}
-		r.Response.Clear()
-		r.WriteString("<!DOCTYPE html>\n<html>")
-		r.WriteString("<head>")
 		// Render the stacktrace.
 		r.WriteString(html.EscapeString(b.String()))
 		r.WriteString("</body>")
