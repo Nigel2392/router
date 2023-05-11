@@ -3,7 +3,6 @@ package debug
 import (
 	"bytes"
 	"fmt"
-	"html"
 	"io"
 	"sort"
 	"strings"
@@ -224,7 +223,7 @@ func RenderRequest(b *request.Request) {
 			if len(header) != 2 {
 				continue
 			}
-			fmt.Fprintf(b, "%s: %s\n", makeBold(header[0]), html.EscapeString(header[1]))
+			fmt.Fprintf(b, "%s: %s\n", makeBold(header[0]), header[1])
 		}
 		fmt.Fprintln(b)
 	}
@@ -232,7 +231,7 @@ func RenderRequest(b *request.Request) {
 	if len(cookies) > 0 {
 		MedHeader(b, makeBold("Cookies:"))
 		for _, cookie := range b.Request.Cookies() {
-			fmt.Fprintf(b, "%s: %s\n", makeBold(cookie.Name), html.EscapeString(cookie.Value))
+			fmt.Fprintf(b, "%s: %s\n", makeBold(cookie.Name), cookie.Value)
 		}
 	}
 	var buf = new(bytes.Buffer)
@@ -244,14 +243,14 @@ func RenderRequest(b *request.Request) {
 		}
 		if buf.Len() > 0 {
 			MedHeader(b, makeBold("Body:"))
-			b.WriteString(html.EscapeString(buf.String()))
+			b.WriteString(buf.String())
 		}
 	}
 	var form = b.Form()
 	if len(form) > 0 {
 		MedHeader(b, makeBold("Form:"))
 		for k, v := range form {
-			fmt.Fprintf(b, "%s: %s\n", makeBold(k), html.EscapeString(strings.Join(v, ", ")))
+			fmt.Fprintf(b, "%s: %s\n", makeBold(k), strings.Join(v, ", "))
 		}
 		fmt.Fprintln(b)
 	}
@@ -315,7 +314,7 @@ func RenderSettings(b requestWriter, settings *AppSettings) {
 	if settings.ROUTES != "" {
 		fmt.Fprintln(b)
 		MedHeader(b, makeBold("Routes:"))
-		fmt.Fprintf(b, "%s\n", makeBold(html.EscapeString(settings.ROUTES)))
+		fmt.Fprintf(b, "%s\n", makeBold(settings.ROUTES))
 	}
 	b.WriteString("</pre>")
 	b.WriteString("</div>")
@@ -345,7 +344,7 @@ func Header(b requestWriter, s string) {
 	b.WriteString("<h1 class=\"")
 	b.WriteString(HTML_CLASS_H1)
 	b.WriteString("\">")
-	b.WriteString(html.EscapeString(s))
+	b.WriteString(s)
 	b.WriteString("</h1>")
 }
 
@@ -353,7 +352,7 @@ func SubHeader(b requestWriter, s string) {
 	b.WriteString("<h2 class=\"")
 	b.WriteString(HTML_CLASS_H2)
 	b.WriteString("\">")
-	b.WriteString(html.EscapeString(s))
+	b.WriteString(s)
 	b.WriteString("</h2>")
 }
 
@@ -361,7 +360,7 @@ func MedHeader(b requestWriter, s string) {
 	b.WriteString("<h3 class=\"")
 	b.WriteString(HTML_CLASS_H3)
 	b.WriteString("\">")
-	b.WriteString(html.EscapeString(s))
+	b.WriteString(s)
 	b.WriteString("</h3>")
 }
 
@@ -369,7 +368,7 @@ func Paragraph(b requestWriter, s string) {
 	b.WriteString("<p class=\"")
 	b.WriteString(HTML_CLASS_P)
 	b.WriteString("\">")
-	b.WriteString(html.EscapeString(s))
+	b.WriteString(s)
 	b.WriteString("</p>")
 }
 
@@ -410,7 +409,7 @@ func (e *errorBuilder) Message(s string) *errorBuilder {
 	e.b.WriteString("<div class=\"")
 	e.b.WriteString(HTML_CLASS_ERROR_MESSAGE)
 	e.b.WriteString("\">")
-	e.b.WriteString(html.EscapeString(s))
+	e.b.WriteString(s)
 	e.b.WriteString("</div>\n")
 	return e
 }
@@ -437,7 +436,7 @@ func (sb *stackBuilder) Item(s string) *stackBuilder {
 	sb.b.WriteString("<div class=\"")
 	sb.b.WriteString(HTML_CLASS_ERROR_STACK_ITEM)
 	sb.b.WriteString("\">")
-	sb.b.WriteString(html.EscapeString(s))
+	sb.b.WriteString(s)
 	sb.b.WriteString("</div>\n")
 	return sb
 }
